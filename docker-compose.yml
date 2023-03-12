@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  sms-svc:
+    env_file:
+        - ./sms/.env
+    build:
+      context: ./sms
+      dockerfile: Dockerfile
+
+  email:
+    env_file:
+      - ./email/.env
+    build:
+      context: ./email
+      dockerfile: Dockerfile
