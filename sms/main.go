@@ -3,8 +3,6 @@ package main
 import (
 	"log"
 
-	// "esd_proj/sms/message"
-
 	"github.com/joho/godotenv"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -56,10 +54,10 @@ func main() {
 	go func() {
 		for d := range msgs {
 			log.Printf("Received a message: %s", d.Body)
+			SendMessage()
 		}
 	}()
 
 	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
-	// message.SendMessage()
 }
