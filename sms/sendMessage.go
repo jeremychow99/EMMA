@@ -1,27 +1,17 @@
-package message
+package main
 
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/twilio/twilio-go"
 	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
 )
 
-func init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-}
-
-func SendMessage(){
+func SendMessage() {
 	from := os.Getenv("TWILIO_FROM_PHONE_NUMBER")
 	to := os.Getenv("TWILIO_TO_PHONE_NUMBER")
-
 	client := twilio.NewRestClient()
 
 	params := &twilioApi.CreateMessageParams{}

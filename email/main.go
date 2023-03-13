@@ -30,7 +30,7 @@ func main() {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"hello", // name
+		"test", // name
 		false,   // durable
 		false,   // delete when unused
 		false,   // exclusive
@@ -54,7 +54,7 @@ func main() {
 	go func() {
 		for d := range msgs {
 			log.Printf("Received a message: %s", d.Body)
-			SendMessage()
+			SendEmail()
 		}
 	}()
 
