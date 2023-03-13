@@ -3,12 +3,16 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from datetime import datetime
 from bson import ObjectId
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 ############# Configurations ##############
 app = Flask(__name__)
 
 
-DB_URI = 'mongodb+srv://admin:admin@emmadatabase.qi2bd87.mongodb.net/?retryWrites=true&w=majority'
+DB_URI = os.getenv('DB_URI')
 DB_NAME = 'Maintenance'
 COLLECTION_NAME = 'maintenance'
 
