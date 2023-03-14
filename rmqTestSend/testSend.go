@@ -5,6 +5,7 @@ import (
 	"context"
 	"log"
 	"time"
+	"net/http"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -15,8 +16,9 @@ func failOnError(err error, msg string) {
 	}
 }
 
-func main() {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+
+func home(w http.ResponseWriter, r *http.Request) {
+	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -71,4 +73,15 @@ func main() {
 		})
 	failOnError(err, "Failed to publish a message")
 	log.Printf(" [x] Sent %s in queue 2\n ", body)
+	w.Write([]byte("Hello"))
+}
+
+func main(){
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", home)
+
+	log.Println("Starting server on :4000")
+	err := http.ListenAndServe(":4000", mux)
+	log.Fatal(err)
 }

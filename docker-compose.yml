@@ -1,5 +1,10 @@
 version: "3.9"
 
+networks:
+  test-net:
+    driver: bridge
+
+
 services:
   sms:
     env_file:
@@ -7,9 +12,12 @@ services:
     build:
       context: ./sms
       dockerfile: Dockerfile
-    # depends_on:
-    #   - rabbitmq
+    depends_on:
+      - rabbitmq
     restart: on-failure
+    networks:
+      - test-net
+    container_name: sms
 
   email:
     env_file:
@@ -17,9 +25,12 @@ services:
     build:
       context: ./email
       dockerfile: Dockerfile
-    # depends_on:
-    #   - rabbitmq
+    depends_on:
+      - rabbitmq
     restart: on-failure
+    networks:
+      - test-net
+    container_name: email
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -28,7 +39,23 @@ services:
     # networks:
     #   - kong-net
     ports:
-      - "5672:5672"
+      # - "5672:5672"
       - "15672:15672"
+    networks:
+      - test-net
+    container_name: rabbitmq
     # volumes:
     #   - rabbitmq_data:/var/lib/rabbitmq
+
+  testsend:
+    build:
+      context: ./rmqTestSend
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    restart: on-failure
+    ports:
+      - "4000:4000"
+    networks:
+      - test-net
+    container_name: testSend
