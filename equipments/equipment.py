@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from getDatabase import get_database
+from get_database import get_database
 from datetime import datetime
 from bson import ObjectId
 
@@ -19,7 +19,8 @@ def find_equipment(equipment_id):
 def json(doc):
     if doc:
         doc["_id"] = str(doc["_id"])
-        doc["last_maintained"] = datetime.strftime(doc["last_maintained"], "%d-%m-%Y %H:%M:%S")
+        if doc["last_maintained"]:  
+            doc["last_maintained"] = datetime.strftime(doc["last_maintained"], "%d-%m-%Y %H:%M:%S")
     
     return doc 
 
@@ -163,4 +164,4 @@ def update_equipment(equipment_id):
 
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

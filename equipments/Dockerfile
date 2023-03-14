@@ -1,7 +1,14 @@
-FROM python3
+FROM python:3-slim
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-COPY . /app
+COPY requirements.txt ./
 
+RUN python -m pip install --no-cache-dir -r requirements.txt
+
+COPY ./ .
+
+EXPOSE 5000
+
+CMD [ "python", "./equipment.py" ]
 

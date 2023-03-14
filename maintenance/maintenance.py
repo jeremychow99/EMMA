@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from datetime import datetime
+from datetime import datetime, timedelta
 from bson import ObjectId
 import os
 from dotenv import load_dotenv
@@ -159,16 +159,22 @@ def schedule_maintenance():
         data["schedule_datetime"] = datetime.strptime(data["schedule_datetime"], '%d-%m-%Y %H:%M:%S')
 
     sched_datetime = data["schedule_datetime"]
+    sched_date = sched_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+    print(sched_date)
+    print(sched_date + timedelta(days=1))
 
     # Validate if there is a document with same equipment_id and schedule_datetime
     # Need a better way of determining if there is schedule for the equipment today (Can just match date?)
-    maintenance_obj = collection.find_one({"equipment_id": eqp_id, "schedule_datetime": sched_datetime})
+    maintenance_obj = collection.find_one({
+        "equipment_id": eqp_id, 
+        "schedule_datetime": {"$gte": sched_date, "$lt": sched_date + timedelta(days=1)}
+        })
 
     # Maintenance exists
     if maintenance_obj:
         return jsonify({
             "code": 400,
-            "data": maintenance_obj,
+            "data": json(maintenance_obj),
             "message": "Maintenance record already exists."
         }), 400
     
