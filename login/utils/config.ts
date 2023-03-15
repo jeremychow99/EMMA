@@ -1,6 +1,6 @@
 import path from "path";
 import dotenv from "dotenv";
-dotenv.config({ path: path.resolve(__dirname, "./.env") });
+dotenv.config({ path: path.resolve(__dirname, "./login.env") });
 
 interface ENV {
     MONGO_URI: string | undefined;
