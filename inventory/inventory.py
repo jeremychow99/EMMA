@@ -27,7 +27,7 @@ CORS(app)
 
 @app.route("/inventory")
 def request_parts():
-    # Get part_id and quantity from request arguments
+    # Get part_id and quantity from request
     part_id = request.args.get('Part_Id')
     quantity = int(request.args.get('Qty'))
 
@@ -53,7 +53,24 @@ def request_parts():
             "message" : 'Not available. Missing Quantity. Procurement initiated.',
             "data": missing_quantity
         }), 400
+
+@app.route("/inventory")
+def return_parts():
+    # Get part_id and quantity from request
+    part_id = request.args.get('Part_Id')
+    quantity = int(request.args.get('Qty'))
+
+    # Add quantity back to inventory database
+    part = collection.find_one({'Part_Id': part_id})
+    new_qty = part['Qty'] + quantity
+    collection.update_one({'Part_Id': part_id}, {'$set': {'Qty': new_qty}})
+
+    return jsonify({
+        "code": 200,
+        "message": "Parts added back to inventory."
+    }), 200
  
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
+
 
