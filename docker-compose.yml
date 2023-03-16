@@ -15,8 +15,8 @@ services:
     depends_on:
       - rabbitmq
     restart: on-failure
-    networks:
-      - test-net
+    # networks:
+    #   - test-net
     container_name: sms
 
   email:
@@ -28,8 +28,8 @@ services:
     depends_on:
       - rabbitmq
     restart: on-failure
-    networks:
-      - test-net
+    # networks:
+    #   - test-net
     container_name: email
 
   rabbitmq:
@@ -37,12 +37,12 @@ services:
     restart: always
     hostname: esd-rabbit
     # networks:
-    #   - kong-net
+    #   - test-net
     ports:
       # - "5672:5672"
       - "15672:15672"
-    networks:
-      - test-net
+    # networks:
+    #   - test-net
     container_name: rabbitmq
     # volumes:
     #   - rabbitmq_data:/var/lib/rabbitmq
@@ -56,6 +56,17 @@ services:
     restart: on-failure
     ports:
       - "4000:4000"
-    networks:
-      - test-net
+    # networks:
+    #   - test-net
     container_name: testSend
+
+  login:
+    build:
+      context: ./login
+      dockerfile: Dockerfile
+    restart: on-failure
+    ports:
+      - "3001:3001"
+    container_name: login
+    env_file:
+        - ./login/utils/login.env
