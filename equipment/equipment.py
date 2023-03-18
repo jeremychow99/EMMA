@@ -19,7 +19,8 @@ def find_equipment(equipment_id):
 def json(doc):
     if doc:
         doc["_id"] = str(doc["_id"])
-        doc["last_maintained"] = datetime.strftime(doc["last_maintained"], "%d-%m-%Y %H:%M:%S")
+        if type(doc["last_maintained"]) == datetime:
+            doc["last_maintained"] = datetime.strftime(doc["last_maintained"], "%d-%m-%Y %H:%M:%S")
     
     return doc 
 
@@ -28,10 +29,10 @@ def json(doc):
 @app.route("/equipment")
 def get_all():
     
-    allEquipment = EQUIPMENT_COLLECTION.find()
+    all_equipment = EQUIPMENT_COLLECTION.find()
     equipmentList = []
     
-    for eqmt in allEquipment:
+    for eqmt in all_equipment:
         equipmentList.append(json(eqmt))
     
     if len(equipmentList):
@@ -45,7 +46,7 @@ def get_all():
     return jsonify(
         {
             "code": 404,
-            "message": "No equipment available"
+            "message": "No equipment record"
         }
     ), 404
 
@@ -74,16 +75,6 @@ def query_equipment(equipment_id):
 @app.route("/equipment", methods=["POST"])
 def create_equipment():
     data = request.get_json()
-    equipment_id = data["equipment_id"]
-    equipment_obj = EQUIPMENT_COLLECTION.find_one({"equipment_id":equipment_id})
-
-    # check exist
-    if equipment_obj:
-        return jsonify({
-            "code": 400,
-            "data": json(equipment_obj),
-            "message": "Equipment record already exists."
-        }), 400
     
     try:
         EQUIPMENT_COLLECTION.insert_one(data)
@@ -112,10 +103,10 @@ def create_equipment():
 @app.route("/equipment/<string:equipment_id>", methods=["PUT"])
 def update_equipment(equipment_id):
     equipment_id = ObjectId(equipment_id)
-
-    # update latest maintained date
+    data = request.get_json()
+    data["last_maintained"] = datetime.strptime(data["last_maintained"], '%d-%m-%Y %H:%M:%S')
+    
     try:
-        data = {"last_maintained": datetime.now()}
         EQUIPMENT_COLLECTION.update_one({"_id": equipment_id}, {"$set": data})
     except: 
         return jsonify(
@@ -135,32 +126,6 @@ def update_equipment(equipment_id):
                     "message": equipment_obj
                 }
             }), 201
-
-
-# DELETE EQUIPMENT 
-# @app.route("/equipment/<string:equipment_id>", methods=["DELETE"])
-# def delete_equipment(equipment_id):
-#     equipment_id = ObjectId(equipment_id)
-#     try:
-#         EQUIPMENT_COLLECTION.delete_one({"_id": equipment_id})
-#     except:
-#         return jsonify(
-#             {
-#                 "code": 500,
-#                 "data": {
-#                     "_id": equipment_id
-#                 },
-#                 "message": "An error occurred deleting the equipment."
-#             }
-#         ), 500
-
-#     return jsonify({
-#                 "code": 200,
-#                 "data": {
-#                     "message": "Successfully deleted equipment"
-#                 }
-#             }), 200
-
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=4999, debug=True)
