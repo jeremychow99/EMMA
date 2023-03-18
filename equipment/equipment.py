@@ -86,7 +86,6 @@ def create_equipment():
                     "data": data
                 },
                 "message": "An error occurred creating the equipment."
-
             }
         ), 500
     
@@ -105,9 +104,21 @@ def update_equipment(equipment_id):
     equipment_id = ObjectId(equipment_id)
     data = request.get_json()
     data["last_maintained"] = datetime.strptime(data["last_maintained"], '%d-%m-%Y %H:%M:%S')
-    
+
     try:
-        EQUIPMENT_COLLECTION.update_one({"_id": equipment_id}, {"$set": data})
+        result = EQUIPMENT_COLLECTION.update_one({"_id": equipment_id}, {"$set": data})
+        print("Records Found: ", result.matched_count)
+        print("Records Modified: ", result.modified_count)
+        
+        # No matching document
+        if result.matched_count == 0:
+            return jsonify({
+                "code": 404,
+                "data": {
+                    "maintenance_id": str(equipment_id)
+                },
+                "message": "No equipment record found."
+            }), 404
     except: 
         return jsonify(
             {
