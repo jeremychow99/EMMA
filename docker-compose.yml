@@ -4,11 +4,10 @@ networks:
   test-net:
     driver: bridge
 
-
 services:
   sms:
     env_file:
-        - ./sms/sms.env
+      - ./sms/sms.env
     build:
       context: ./sms
       dockerfile: Dockerfile
@@ -18,6 +17,28 @@ services:
     # networks:
     #   - test-net
     container_name: sms
+  
+  maintenance:
+    env_file:
+      - ./maintenance/.env
+    build:
+      context: ./maintenance
+      dockerfile: Dockerfile
+    restart: on-failure
+    ports:
+    - "5000:5000"
+    container_name: maintenance
+
+  equipment:
+    env_file:
+      - ./equipment/.env
+    build:
+      context: ./equipment
+      dockerfile: Dockerfile
+    restart: on-failure
+    ports:
+      - "4999:4999"
+    container_name: equipment
 
   email:
     env_file:
@@ -69,12 +90,5 @@ services:
       - "3001:3001"
     container_name: login
     env_file:
-        - ./login/utils/login.env
-
-  equipment:
-    build:
-      context: ./equipment
-      dockerfile: Dockerfile
-    restart: on-failure
-    container_name: equipment
+      - ./login/utils/login.env
     

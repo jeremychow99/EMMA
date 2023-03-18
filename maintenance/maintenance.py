@@ -110,6 +110,11 @@ def update_maintenance(maintenance_id):
 
     data = request.get_json()
 
+    datetime_keys = ['schedule_datetime', 'start_datetime', 'end_datetime']
+    for key in datetime_keys:
+        if key in data:
+            data[key] = datetime.strptime(data[key], '%d-%m-%Y %H:%M:%S')
+
     try:
         # Update maintenance record
         result = collection.update_one({"_id":maintenance_id}, {"$set": data})
@@ -160,11 +165,11 @@ def schedule_maintenance():
 
     sched_datetime = data["schedule_datetime"]
     sched_date = sched_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
-    print(sched_date)
-    print(sched_date + timedelta(days=1))
 
-    # Validate if there is a document with same equipment_id and schedule_datetime
-    # Need a better way of determining if there is schedule for the equipment today (Can just match date?)
+    # THINGS TO ADD
+    # UPDATING INVENTORY BASED ON 
+
+    # Validate if there is a document with same equipment_id and schedule date
     maintenance_obj = collection.find_one({
         "equipment_id": eqp_id, 
         "schedule_datetime": {"$gte": sched_date, "$lt": sched_date + timedelta(days=1)}
