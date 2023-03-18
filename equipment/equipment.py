@@ -19,8 +19,7 @@ def find_equipment(equipment_id):
 def json(doc):
     if doc:
         doc["_id"] = str(doc["_id"])
-        if doc["last_maintained"]:  
-            doc["last_maintained"] = datetime.strftime(doc["last_maintained"], "%d-%m-%Y %H:%M:%S")
+        doc["last_maintained"] = datetime.strftime(doc["last_maintained"], "%d-%m-%Y %H:%M:%S")
     
     return doc 
 
@@ -82,7 +81,7 @@ def create_equipment():
     if equipment_obj:
         return jsonify({
             "code": 400,
-            "data": equipment_obj,
+            "data": json(equipment_obj),
             "message": "Equipment record already exists."
         }), 400
     
