@@ -70,3 +70,11 @@ services:
     container_name: login
     env_file:
         - ./login/utils/login.env
+
+  equipment:
+    build:
+      context: ./equipment
+      dockerfile: Dockerfile
+    restart: on-failure
+    container_name: equipment
+    
