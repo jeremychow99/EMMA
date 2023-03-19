@@ -54,7 +54,7 @@ def request_parts():
             "data": missing_quantity
         }), 400
 
-@app.route("/inventory")
+@app.route("/inventory/<string:maintenance_id>")
 def return_parts():
     # Get part_id and quantity from request
     part_id = request.args.get('Part_Id')
