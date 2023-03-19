@@ -97,4 +97,15 @@ services:
     #     dockerfile: Dockerfile
     #   restart: on-failure
     #   container_name: equipment
+
+  inventory:
+    env_file:
+      - ./inventory/.env
+    build:
+      context: ./inventory
+      dockerfile: Dockerfile
+    restart: on-failure
+    ports:
+    - "5001:5001"
+    container_name: inventory
     

@@ -75,6 +75,7 @@ def query_equipment(equipment_id):
 @app.route("/equipment", methods=["POST"])
 def create_equipment():
     data = request.get_json()
+    data["last_maintained"] = datetime.strptime(data["last_maintained"], '%d-%m-%Y %H:%M:%S')
     
     try:
         EQUIPMENT_COLLECTION.insert_one(data)
@@ -83,19 +84,17 @@ def create_equipment():
             {
                 "code": 500,
                 "data": {
-                    "data": data
+                    "data": json(data)
                 },
-                "message": "An error occurred creating the equipment."
+                "message": "Error occurred when creating equipment record."
             }
         ), 500
     
     # success
     return jsonify({
-                "code": 200,
-                "data": {
-                    "message": "Successfully created"
-                }
-            }), 200
+                "code": 201,
+                "data": json(data)
+            }), 201
 
 
 # UPDATE EQUIPMENT 
