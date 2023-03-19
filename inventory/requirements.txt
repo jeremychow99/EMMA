@@ -1,13 +1,4 @@
-FROM python:3-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-
-RUN python -m pip install --no-cache-dir -r requirements.txt
-
-COPY ./ .
-
-EXPOSE 5000
-
-CMD [ "python", "inventory.py" ]
+Flask==2.2.2
+Flask-Cors==3.0.10
+pymongo==4.3.3
+python-dotenv==1.0.0
