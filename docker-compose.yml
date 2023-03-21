@@ -98,11 +98,16 @@ services:
     env_file:
       - ./login/utils/login.env
 
-    # equipment:
-    #   build: 
-    #     dockerfile: Dockerfile
-    #   restart: on-failure
-    #   container_name: equipment
+    equipment:
+      env_file:
+       -./equipment/.env
+      build:
+          context: ./inventory
+          dockerfile: Dockerfile
+      restart: on-failure
+      ports:
+        - "3000:4999"
+      container_name: equipment
 
   inventory:
     env_file:
