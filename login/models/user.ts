@@ -11,6 +11,8 @@ const UserSchema: mongoose.Schema = new mongoose.Schema({
     password: { type: String },
 });
 
+const iss = "test123";
+
 UserSchema.pre('save', async function () {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt)
@@ -18,7 +20,7 @@ UserSchema.pre('save', async function () {
 })
 
 UserSchema.methods.createJWT = function () {
-    return jwt.sign({ name: this.name }, sanitizedConfig.JWT_SECRET, { expiresIn: sanitizedConfig.JWT_LIFETIME })
+    return jwt.sign({ iss: iss }, sanitizedConfig.JWT_SECRET, { expiresIn: sanitizedConfig.JWT_LIFETIME })
 }
 
 UserSchema.methods.comparePassword = async function (candidatePassword: any) {
