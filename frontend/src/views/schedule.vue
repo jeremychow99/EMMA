@@ -8,13 +8,13 @@
                 <h2 class="text-start mt-3">Schedule</h2>
                 <h2 class="text-start mb-3">Maintenance</h2>
             </v-col>
-            <v-col cols="8">
+            <v-col cols="6" style="background-color: lavender;">
                 <v-row class="mt-0 mx-2">
                     <v-col cols="5" style="padding:8px 16px">
                         <p class="text-right font-weight-regular">EquipmentID: </p>
                     </v-col>
                     <v-col cols="7" style="padding:8px 16px">
-                        <p>1234</p>
+                        <p>{{ equipment_id }}</p>
                     </v-col>
                 </v-row>
                 <v-row class="mt-0 mx-2">
@@ -22,18 +22,30 @@
                         <p class="text-right font-weight-regular">Parts: </p>
                     </v-col>
                     <v-col cols="7" style="padding:8px 16px">
-                        <p>Reserved</p>
+                        <p v-if="part_list.length != 0">Reserved</p>
+                        <p v-else>No Parts Reserved</p>
                     </v-col>
                 </v-row>
                 <v-row class="mt-0 mx-2">
-                    <v-col cols="5" style="padding:8px 16px">
+                    <v-col cols="5" style="padding: 8px 16px 8px 8px">
                         <p class="text-right font-weight-regular">Maintenance Datetime: </p>
                     </v-col>
                     <v-col cols="7" style="padding:8px 16px">
+                        <input type="datetime-local" id="maintenance-datetime"
+                        name="maintenance-datetime"
+                        :min="currDateTime" v-model="maintenance_datetime">
                     </v-col>
                 </v-row>
             </v-col>
+            <v-col cols="2" class="position-relative" style="background-color: lavender;">
+                <v-btn class="btn btn-success position-absolute" style="right: 5px; bottom: 5px;" @click="ScheduleMaintenance">Submit</v-btn>
+            </v-col>
         </v-row>
+
+        <!-- Testing Purpose -->
+        <!-- <div>
+            {{ maintenance_datetime }}
+        </div> -->
         
 
         <v-tabs class="mx-auto mt-3" align-tabs="center" v-model="tab">
@@ -68,23 +80,24 @@
                         <thead>
                             <tr>
                                 <th class="text-center">
-                                    Equipment ID
+                                    Name
                                 </th>
                                 <th class="text-center">
-                                    Equipment Name
+                                    Status
                                 </th>
                                 <th class="text-center">
-                                    
+                                    Select
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr
-                                v-for="eqp in eqp_list"
-                                :key="eqp.id"
+                                v-for="eqp in equipment_arr"
+                                :key="eqp['_id']"
                             >
-                                <td>{{ item.name }}</td>
-                                <td>{{ item.calories }}</td>
+                                <td class="text-center">{{ eqp.equipment_name }}</td>
+                                <td class="text-center">{{ eqp.equipment_status }}</td>
+                                <td class="text-center"><input type="radio" :id="eqp['_id']" :value="eqp['_id']" name="eqp_radios" v-model="equipment_id"></td>
                             </tr>
                         </tbody>
                     </v-table>
@@ -94,55 +107,45 @@
             <v-window-item key="parts" value="parts">
                 <v-container class="rounded-lg" style="background-color: lightgray; padding: 5px">
                 
-                <v-text-field
-                    :loading="loading"
-                    density="compact"
-                    variant="solo"
-                    label="Search part name"
-                    single-line
-                    hide-details
-                    @click:append-inner="onClick"
-                    class="my-2"
-                    style="margin:auto; width: 50%;"
-                ></v-text-field>
-               
-                    
+                    <v-text-field
+                        :loading="loading"
+                        density="compact"
+                        variant="solo"
+                        label="Search part name"
+                        single-line
+                        hide-details
+                        @click:append-inner="onClick"
+                        class="my-2"
+                        style="margin:auto; width: 50%;"
+                    ></v-text-field>
+                
+                        
 
-                <v-table fixed-header height="400px">
-                    <thead>
-                        <tr>
-                            <th class="text-center">
-                                Part ID
-                            </th>
-                            <th class="text-center">
-                                Part Name
-                            </th>
-                            <th class="text-center">
-                                Quantity
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="eqp in eqp_list"
-                            :key="eqp.id"
-                        >
-                            <td>{{ item.name }}</td>
-                            <td>{{ item.calories }}</td>
-                        </tr>
-                    </tbody>
-                </v-table>
-            </v-container>
+                    <v-table fixed-header height="400px">
+                        <thead>
+                            <tr>
+                                <th class="text-center">
+                                    Part Name
+                                </th>
+                                <th class="text-center">
+                                    Quantity
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                        </tbody>
+                    </v-table>
+                </v-container>
             </v-window-item>
         </v-window>
     </v-container>
-
-
-    <link rel="stylesheet" href="../../src/stylesheets/schedule_style.css">
 </template>
 
 <script>
 import navbar from "../components/navbar.vue"
+import { equipmentURL } from '../../api'
+import axios from "axios";
 
 export default {
     components: {
@@ -152,8 +155,36 @@ export default {
     data() {
         return {
             tab: null,
-            date: null
+            date: null,
+            equipment_arr: [],
+
+            // Form Inputs
+            equipment_id: "",
+            part_list: [],
+            maintenance_datetime: new Date().toISOString().replace(/.\d+Z$/g, ""),
         }
+    },
+
+    computed: {
+        currDateTime() {
+            var now = new Date();
+            now.setSeconds(0, 0);
+            var stamp = now.toISOString().replace(/:00.000Z/, "");
+
+            return stamp
+        }
+    },
+
+    methods: {
+        ScheduleMaintenance() {
+            console.log(this.equipment_id)
+            console.log(this.part_list)
+            console.log(this.maintenance_datetime)
+        }
+    },
+    async mounted() {
+        let result = await axios.get(equipmentURL)
+        this.equipment_arr = result.data.data.equipment
     }
 };
 </script>
