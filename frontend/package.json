@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@syncfusion/ej2-vue-dropdowns": "^20.4.54",
     "pinia": "^2.0.33",
     "vue": "^3.2.45",
     "vue-router": "^4.1.6",
