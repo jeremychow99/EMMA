@@ -2,6 +2,7 @@
   <div class="d-flex align-center justify-center" style="height: 100vh">
     <v-sheet width="400" class="mx-auto">
       <button @click="test">test</button>
+      <button @click="reset">reset token</button>
       <v-form fast-fail @submit.prevent="login">
         <v-text-field v-model="username" label="User Name"></v-text-field>
         <v-text-field v-model="password" label="Password"></v-text-field>
@@ -27,6 +28,10 @@ export default {
     };
   },
   methods: {
+    reset(){
+      localStorage.clear()
+      console.log(localStorage.token);
+    },
     test() {
       axios
         .get(
@@ -35,6 +40,7 @@ export default {
             headers: {
               "Content-Type": "application/json",
               "Access-Control-Allow-Origin": "*",
+              "Authorization": "Bearer " + localStorage.token,
             },
           }
         )
@@ -78,5 +84,9 @@ export default {
         });
     },
   },
+  created() {
+    console.log(localStorage.token);
+    console.log(localStorage.token);
+  }
 };
 </script>
