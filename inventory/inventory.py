@@ -1,11 +1,14 @@
 import requests
 import json
-import os
 
 from pymongo import MongoClient
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+from bson import ObjectId
+from invokes import invoke_http
+import os
+
 
 load_dotenv()
 
@@ -24,19 +27,45 @@ collection = db[COLLECTION_NAME]
 CORS(app)
 
 ##########################################
+# GET ALL PARTS
+# @app.route("/inventory")
+# def get_all():
+    
+#     all_parts = collection.find()
+#     PartList = []
+    
+#     for part in all_parts:
+#         #PartList.append(json(part))
+#         PartList.append(json.loads(json.dumps(part)))
+    
+#     if len(PartList):
+#         return jsonify({
+#             "code": 200,
+#             "data": {
+#                 "parts": [part for part in PartList]
+#             }
+#         }), 200
+    
+#     return jsonify(
+#         {
+#             "code": 404,
+#             "message": "No such part"
+#         }
+#     ), 404
 
-@app.route("/inventory")
-def request_parts():
+#REQUEST FOR A PART AND UPDATE DB IF AVAILABLE, IF NOT INVOKE EMAIL MS
+@app.route("/inventory/<string:inventory_id>&<int:quantity>", methods = ['PUT']) 
+def request_part(inventory_id,quantity):
     # Get part_id and quantity from request
-    part_id = request.args.get('Part_Id')
-    quantity = int(request.args.get('Qty'))
-
+    req_part_id = ObjectId(inventory_id)
+    req_quantity = quantity
+    
     # Check if required quantity for part is available from inventory database
-    part = collection.find_one({'Part_Id': part_id})
-    if part['Qty'] >= quantity:
-        # If yes, reserve quantity by updating the inventory database
-        new_qty = part['Qty'] - quantity
-        collection.update_one({'Part_id': part_id}, {'$set': {'Qty': new_qty}}) 
+    part = collection.find_one({'_id': req_part_id})
+    if part['Qty'] >= req_quantity:
+        #If yes, reserve quantity by updating the inventory database
+        new_qty = part['Qty'] - req_quantity
+        collection.update_one({'_id': req_part_id}, {'$set': {'Qty': new_qty}}) 
         return jsonify({
                 "code": 200,
                 "message": "Quantity reserved"
@@ -45,25 +74,26 @@ def request_parts():
     else:
         # If no, determine missing quantity and trigger procurement process (triggers notification microservice)
         available_quantity = part['Qty']
-        missing_quantity = quantity - available_quantity
+        missing_quantity = req_quantity - available_quantity
         
-        requests.post(f"/notifications")
+        invoke_http("/email", json=missing_quantity, method='GET')
         return jsonify({
             "code": 400,
             "message" : 'Not available. Missing Quantity. Procurement initiated.',
             "data": missing_quantity
         }), 400
 
-@app.route("/inventory/<string:inventory_id>")
-def return_parts():
+#RETURN PARTS TO DB
+@app.route("/inventory/<string:inventory_id>&<int:quantity>", methods = ['POST'])
+def return_parts(inventory_id, quantity):
     # Get part_id and quantity from request
-    part_id = request.args.get('Part_Id')
-    quantity = int(request.args.get('Qty'))
+    req_part_id = ObjectId(inventory_id)
+    req_quantity = quantity
 
     # Add quantity back to inventory database
-    part = collection.find_one({'Part_Id': part_id})
-    new_qty = part['Qty'] + quantity
-    collection.update_one({'Part_Id': part_id}, {'$set': {'Qty': new_qty}})
+    part = collection.find_one({'_id': req_part_id})
+    new_qty = part['Qty'] + req_quantity
+    collection.update_one({'_id': req_part_id}, {'$set': {'Qty': new_qty}})
 
     return jsonify({
         "code": 200,
@@ -72,5 +102,8 @@ def return_parts():
  
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
+
+
+
 
 
