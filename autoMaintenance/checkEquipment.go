@@ -57,6 +57,7 @@ func checkEquipment() {
 	if err != nil {
 		fmt.Println(err)
 	}
+	
 	equipmentList := response.Data.Equipment
 	for _, e := range equipmentList {
 		// if equipment status == require maintenance, then invoke gRPC
