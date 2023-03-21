@@ -56,9 +56,19 @@
             </v-table>
         </v-row>
 
-        <v-btn style="position: fixed; bottom: 0; right: 0;">
-            Start
-        </v-btn>
+        <v-row class="justify-end">
+            <!-- <v-btn style="background-color: #5D5FEF; color: white; margin-right: 10px;">
+                Previous
+            </v-btn> -->
+            <!-- STEP 1: CHOOSE MAINTENANCE RECORD
+                STEP 2: REPLACE PLEASE SELECT DROP DOWN WITH MAINTENANCE RECORD DETAILS 
+                - EQUIPMENTID, STATUS, SCHEDULEDATETIME
+                STEP 3: DISPLAY PARTS INVENTORY
+            -->
+            <v-btn style="background-color: #5D5FEF; color: white;">
+                Start
+            </v-btn>
+        </v-row>
     </v-container>
 
 </template>

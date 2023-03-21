@@ -4,6 +4,8 @@ import login from "../components/login.vue";
 import main from "../views/main.vue"
 import schedule from "../views/schedule.vue";
 import startMaintenance from "../views/startMaintenance.vue";
+import endMaintenance from "../views/endMaintenance.vue";
+
 const routes = [
     {
         path: "/login",
@@ -24,6 +26,11 @@ const routes = [
         path: "/startMaintenance",
         name: "startMaintenance",
         component: startMaintenance
+    },
+    {
+        path: "/endMaintenance",
+        name: "endMaintenance",
+        component: endMaintenance
     }
 ]
 
