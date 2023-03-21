@@ -47,15 +47,15 @@
             <tbody>
               <tr>
                 <td class="font-weight-bold text-green-darken-4">Operational</td>
-                <td>87</td>
+                <td>{{eqOperational}}</td>
               </tr>
               <tr>
                 <td class="font-weight-bold text-amber-darken-1">Warning</td>
-                <td>10</td>
+                <td>{{eqWarning}}</td>
               </tr>
               <tr>
                 <td class="font-weight-bold text-red-darken-4">Down</td>
-                <td>3</td>
+                <td>{{eqDown}}</td>
               </tr>
             </tbody>
           </v-table>
@@ -84,6 +84,8 @@ export default {
       return {
         // value to be calculated
         eqOperational: 87,
+        eqWarning: 10,
+        eqDown: 3,
         showReport: false,
       }
   }
