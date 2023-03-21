@@ -42,9 +42,9 @@
         </v-row>
 
         <!-- Testing Purpose -->
-        <!-- <div>
-            {{ formValid }}
-        </div> -->
+        <div>
+            {{ part_list }}
+        </div>
         
 
         <v-tabs class="mx-auto mt-3" align-tabs="center" v-model="tab">
@@ -191,7 +191,7 @@ export default {
             let temp_part_list = this.part_list
 
             // Remove part from part list
-            if (reserve_qty === 0 && part_id in temp_part_list) {
+            if (reserve_qty === "0" && part_id in temp_part_list) {
                 delete temp_part_list[part_id]
             } else {
                 // console.log("Added Parts")
