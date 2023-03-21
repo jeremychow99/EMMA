@@ -76,7 +76,7 @@ def request_part(inventory_id,quantity):
         available_quantity = part['Qty']
         missing_quantity = req_quantity - available_quantity
         
-        invoke_http("/email/<int=missing_quantity>", method='PUT')
+        invoke_http(f"/email/{missing_quantity}", method='PUT')
         return jsonify({
             "code": 400,
             "message" : f'Not available. Missing Quantity: {missing_quantity}. Procurement initiated.'
