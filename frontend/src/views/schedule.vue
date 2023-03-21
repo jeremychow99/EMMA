@@ -22,7 +22,7 @@
                         <p class="text-right font-weight-regular">Parts: </p>
                     </v-col>
                     <v-col cols="7" style="padding:8px 16px">
-                        <p v-if="part_list.length != 0">Reserved</p>
+                        <p v-if="Object.keys(part_list).length != 0">Reserved</p>
                         <p v-else>No Parts Reserved</p>
                     </v-col>
                 </v-row>
@@ -32,19 +32,18 @@
                     </v-col>
                     <v-col cols="7" style="padding:8px 16px">
                         <input type="datetime-local" id="maintenance-datetime"
-                        name="maintenance-datetime"
-                        :min="currDateTime" v-model="maintenance_datetime">
+                        name="maintenance-datetime" v-model="maintenance_datetime">
                     </v-col>
                 </v-row>
             </v-col>
             <v-col cols="2" class="position-relative" style="background-color: lavender;">
-                <v-btn class="btn btn-success position-absolute" style="right: 5px; bottom: 5px;" @click="ScheduleMaintenance">Submit</v-btn>
+                <v-btn class="btn btn-success position-absolute" style="right: 5px; bottom: 5px;" @click="ScheduleMaintenance" :disabled="!formValid">Submit</v-btn>
             </v-col>
         </v-row>
 
         <!-- Testing Purpose -->
         <!-- <div>
-            {{ maintenance_datetime }}
+            {{ formValid }}
         </div> -->
         
 
@@ -130,10 +129,20 @@
                                 <th class="text-center">
                                     Quantity
                                 </th>
+                                <th class="text-center" width="20%">
+                                    Reserve Qty
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
-                            
+                            <tr v-for="part in inventory_arr">
+                                <td class="text-center">{{ part['PartName'] }}</td>
+                                <td class="text-center">{{ part['Qty'] }}</td>
+                                <td class="text-center">
+                                    <!-- <v-text-field :id="part['_id']" type="number" width="50" value="0" min="0"></v-text-field> -->
+                                    <input type="number" :id="part['_id']" min="0" value="0" style="border: 1px solid gray; width:50%;" class="text-center" @change="UpdatePartList($event.currentTarget)">
+                                </td>
+                            </tr>
                         </tbody>
                     </v-table>
                 </v-container>
@@ -144,7 +153,7 @@
 
 <script>
 import navbar from "../components/navbar.vue"
-import { equipmentURL } from '../../api'
+import { equipmentURL, inventoryURL } from '../../api'
 import axios from "axios";
 
 export default {
@@ -157,34 +166,82 @@ export default {
             tab: null,
             date: null,
             equipment_arr: [],
+            inventory_arr: [],
 
             // Form Inputs
             equipment_id: "",
-            part_list: [],
-            maintenance_datetime: new Date().toISOString().replace(/.\d+Z$/g, ""),
+            part_list: {},
+            maintenance_datetime: "",
         }
     },
 
     computed: {
-        currDateTime() {
-            var now = new Date();
-            now.setSeconds(0, 0);
-            var stamp = now.toISOString().replace(/:00.000Z/, "");
-
-            return stamp
+        formValid() {
+            return (this.equipment_id != "" && this.maintenance_datetime != "")
         }
     },
 
     methods: {
+        UpdatePartList(e) {
+            // console.log(e)
+            // console.log(e.id)
+            // console.log(e.value)
+            let part_id = e.id
+            let reserve_qty = e.value
+            let temp_part_list = this.part_list
+
+            // Remove part from part list
+            if (reserve_qty === 0 && part_id in temp_part_list) {
+                delete temp_part_list[part_id]
+            } else {
+                // console.log("Added Parts")
+                temp_part_list[part_id] = reserve_qty
+            }
+            
+            this.part_list = temp_part_list
+        },
+        
         ScheduleMaintenance() {
-            console.log(this.equipment_id)
-            console.log(this.part_list)
-            console.log(this.maintenance_datetime)
+            // console.log(this.equipment_id)
+            // console.log(this.part_list)
+            // console.log(this.maintenance_datetime)
+
+            var datetime_arr = this.maintenance_datetime.split("T");
+            var date = datetime_arr[0]
+            var time = datetime_arr[1]
+            var date_arr = date.split("-")
+
+            var month = date_arr[1]
+            var day = date_arr[2]
+            var year = date_arr[0]
+
+            // console.log(month)
+            // console.log(day)
+            // console.log(year)
+
+            var formatted_datetime = day + '-' + month + '-' + year + " " + time + ":00"
+            console.log(formatted_datetime)
+
+
+            if (this.equipment_id != "" && this.maintenance_datetime != "") {
+                console.log("Submitted schedule maintenance request")
+                let data = {
+                    equipment_id: this.equipment_id,
+                    schedule_datetime: formatted_datetime,
+                    partlist: this.part_list
+                }
+
+                // console.log(this.part_list)
+                // console.log(data)
+            }
         }
     },
     async mounted() {
-        let result = await axios.get(equipmentURL)
-        this.equipment_arr = result.data.data.equipment
+        let eqp_result = await axios.get(equipmentURL)
+        let inv_result = await axios.get(inventoryURL)
+
+        this.equipment_arr = eqp_result.data.data.equipment
+        this.inventory_arr = inv_result.data.data.parts
     }
 };
 </script>
