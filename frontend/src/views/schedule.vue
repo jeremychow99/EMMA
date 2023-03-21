@@ -154,7 +154,7 @@
 <script>
 import navbar from "../components/navbar.vue"
 import { equipmentURL, inventoryURL } from '../../api'
-import axios from "axios";
+import axios from "axios"
 
 export default {
     components: {
