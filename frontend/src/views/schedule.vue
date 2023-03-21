@@ -42,9 +42,9 @@
         </v-row>
 
         <!-- Testing Purpose -->
-        <div>
+        <!-- <div>
             {{ part_list }}
-        </div>
+        </div> -->
         
 
         <v-tabs class="mx-auto mt-3" align-tabs="center" v-model="tab">

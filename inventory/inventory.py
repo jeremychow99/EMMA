@@ -28,30 +28,30 @@ CORS(app)
 
 ##########################################
 # GET ALL PARTS
-# @app.route("/inventory")
-# def get_all():
+@app.route("/inventory")
+def get_all():
     
-#     all_parts = collection.find()
-#     PartList = []
+    all_parts = collection.find()
+    partList = []
     
-#     for part in all_parts:
-#         #PartList.append(json(part))
-#         PartList.append(json.loads(json.dumps(part)))
+    for part in all_parts:
+        part['_id'] = str(part['_id'])
+        partList.append(part)
     
-#     if len(PartList):
-#         return jsonify({
-#             "code": 200,
-#             "data": {
-#                 "parts": [part for part in PartList]
-#             }
-#         }), 200
+    if len(partList):
+        return jsonify({
+            "code": 200,
+            "data": {
+                "parts": partList
+            }
+        }), 200
     
-#     return jsonify(
-#         {
-#             "code": 404,
-#             "message": "No such part"
-#         }
-#     ), 404
+    return jsonify(
+        {
+            "code": 404,
+            "message": "No Parts Found."
+        }
+    ), 404
 
 #REQUEST FOR A PART AND UPDATE DB IF AVAILABLE, IF NOT INVOKE EMAIL MS
 @app.route("/inventory/<string:inventory_id>&<int:quantity>", methods = ['PUT']) 
