@@ -54,7 +54,7 @@ def get_all():
     ), 404
 
 #REQUEST FOR A PART AND UPDATE DB IF AVAILABLE, IF NOT INVOKE EMAIL MS
-@app.route("/inventory/<string:inventory_id>&<int:quantity>", methods = ['PUT']) 
+@app.route("/inventory/<string:inventory_id>&<int:quantity>/reserve", methods = ['PUT']) 
 def request_part(inventory_id,quantity):
     # Get part_id and quantity from request
     req_part_id = ObjectId(inventory_id)
@@ -83,7 +83,7 @@ def request_part(inventory_id,quantity):
         }), 400
 
 #RETURN PARTS TO DB
-@app.route("/inventory/<string:inventory_id>&<int:quantity>", methods = ['POST'])
+@app.route("/inventory/<string:inventory_id>&<int:quantity>/return", methods = ['PUT'])
 def return_parts(inventory_id, quantity):
     # Get part_id and quantity from request
     req_part_id = ObjectId(inventory_id)
