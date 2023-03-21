@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import login from "../components/login.vue";
 import main from "../views/main.vue"
 import schedule from "../views/schedule.vue";
+import startMaintenance from "../views/startMaintenance.vue";
 const routes = [
     {
         path: "/login",
@@ -18,6 +19,11 @@ const routes = [
         path: "/schedule",
         name: "schedule",
         component: schedule
+    },
+    {
+        path: "/startMaintenance",
+        name: "startMaintenance",
+        component: startMaintenance
     }
 ]
 
