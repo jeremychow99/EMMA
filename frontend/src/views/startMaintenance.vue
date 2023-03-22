@@ -23,29 +23,52 @@
             </v-col>
         </v-row>
         
-        <v-row>
+        <v-row style="margin-bottom: 10px;">
             <select name="" id="" style="margin-left: 20px; padding: 0px 10px; border: lightgrey 1px solid;">
                 <option value="" disabled selected >Please select</option>
-                <option value="volvo">Volvo</option>
-                <option value="saab">Saab</option>
-                <option value="mercedes">Mercedes</option>
-                <option value="audi">Audi</option>
+                <v-for>
+                    <option value=""></option>
+                </v-for>
             </select>
         </v-row>
 
         <v-row style="padding-left: 20px;">
             <v-table>
+                <thead>
                 <tr>
-                    <td>ID</td>
-                    <td>Description</td>
+                    <th class="text-left">
+                    ID
+                    </th>
+                    <th class="text-left">
+                    Description
+                    </th>
                 </tr>
+                </thead>
+                <tbody>
+                <tr
+                    v-for="maintenance in maintenance_arr"
+                    :key="maintenance.id"
+                >
+                    <td>{{ maintenance.id }}</td>
+                    <td>{{ maintenance.status }}</td>
+                </tr>
+                </tbody>
             </v-table>
         </v-row>
 
-
-        <v-btn style="position: fixed; bottom: 5; right: 0;">
-            Start
-        </v-btn>
+        <v-row class="justify-end">
+            <!-- <v-btn style="background-color: #5D5FEF; color: white; margin-right: 10px;">
+                Previous
+            </v-btn> -->
+            <!-- STEP 1: CHOOSE MAINTENANCE RECORD
+                STEP 2: REPLACE PLEASE SELECT DROP DOWN WITH MAINTENANCE RECORD DETAILS 
+                - EQUIPMENTID, STATUS, SCHEDULEDATETIME
+                STEP 3: DISPLAY PARTS INVENTORY
+            -->
+            <v-btn style="background-color: #5D5FEF; color: white;">
+                Start
+            </v-btn>
+        </v-row>
     </v-container>
 
 </template>
@@ -54,6 +77,8 @@
 
 <script>
 import navbar from "../components/navbar.vue"
+import { equipmentURL, inventoryURL , maintenanceURL} from '../../api'
+import axios from "axios";
 
 export default {
     components: {
@@ -62,7 +87,24 @@ export default {
 
     data() {
         return {
+            maintenance_arr: [],
+            equipment_arr: [],
+            inventory_arr: [],
         }
+    },
+
+    methods: {
+
+    },
+
+    async mounted() {
+        let eqp_result = await axios.get(equipmentURL)
+        let inv_result = await axios.get(inventoryURL)
+        let maint_result = await axios.get(maintenanceURL)
+
+        this.maintenance_arr = maint_result.data.data.maintenance
+        this.equipment_arr = eqp_result.data.data.equipment
+        this.inventory_arr = inv_result.data.data.parts
     }
 };
 

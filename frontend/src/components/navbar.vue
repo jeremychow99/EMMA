@@ -30,5 +30,7 @@ export default {
       ]
     }
   }
+  // TODO: Implement Logout button
+  // clear localstorage token, redirect to login page.
   }
 </script>

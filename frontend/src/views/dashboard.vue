@@ -3,6 +3,7 @@
 
   <v-container>
 
+  <!-- Equipment Status Card -->
     <v-card
       title="Equipment Status"
       subtitle="Proportion of Operational Equipment"
@@ -74,6 +75,8 @@
 
 <script>
 import navbar from "../components/navbar.vue";
+// import { equipmentURL } from '../../api'
+// import axios from "axios";
 
 export default {
   components: {
@@ -82,13 +85,42 @@ export default {
 
   data() {
       return {
-        // value to be calculated
+        // values to be calculated
+        // equipment_arr: [],
+        // eqNoMaintain:
+        // eqMaintain:
+
+        // test values
         eqOperational: 87,
         eqWarning: 10,
         eqDown: 3,
+
         showReport: false,
       }
-  }
+  },
+
+  // have not tested yet!
+  // methods: {
+  //   updateEquipmentStatus() {
+  //     for (equipment in this.equipment_arr) {
+  //       if (equipment.equipment_status == "No maintenance required") {
+  //         this.eqNoMaintain++
+  //       }
+  //       else {
+  //         this.eqMaintain++
+  //       }
+  //     }
+  //   },
+
+  // },
+
+  // async mounted() {
+  //       let eqp_result = await axios.get(equipmentURL)
+
+  //       this.equipment_arr = eqp_result.data.data.equipment
+  //   }
+
+  
 };
 
 </script>
