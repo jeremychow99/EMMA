@@ -27,7 +27,7 @@ collection = db[COLLECTION_NAME]
 CORS(app)
 
 ##########################################
-# GET ALL PARTS
+#GET ALL PARTS
 @app.route("/inventory")
 def get_all():
     
@@ -53,50 +53,124 @@ def get_all():
         }
     ), 404
 
-#REQUEST FOR A PART AND UPDATE DB IF AVAILABLE, IF NOT INVOKE EMAIL MS
-@app.route("/inventory/<string:inventory_id>&<int:quantity>/reserve", methods = ['PUT']) 
-def request_part(inventory_id,quantity):
-    # Get part_id and quantity from request
-    req_part_id = ObjectId(inventory_id)
-    req_quantity = quantity
+#REQUEST FOR PARTS AND UPDATE DB IF AVAILABLE
+@app.route("/inventory/reserve", methods = ['PUT']) 
+def reserve_parts():
+    # Get parts and quantities from JSON request body
+    parts = request.get_json()
     
-    # Check if required quantity for part is available from inventory database
-    part = collection.find_one({'_id': req_part_id})
-    if part['Qty'] >= req_quantity:
-        #If yes, reserve quantity by updating the inventory database
-        new_qty = part['Qty'] - req_quantity
-        collection.update_one({'_id': req_part_id}, {'$set': {'Qty': new_qty}}) 
+    #reserved parts list and procurement parts list to return
+    res_part_list = []
+    procurement_part_list = []
+    error_part_list = []
+
+    for each in parts:
+        # Get part_id and quantity from request
+        req_part_id = ObjectId(each.get('_id'))
+        req_quantity = int(each.get('Qty'))
+        req_partname = str(each.get('PartName'))
+
+        try:
+            # Check if required quantity for part is available from inventory database
+            part = collection.find_one({'_id': req_part_id})
+            if part['Qty'] >= req_quantity:
+                #If yes, reserve quantity by updating the inventory database
+                new_qty = part['Qty'] - req_quantity
+                collection.update_one({'_id': req_part_id}, {'$set': {'Qty': new_qty}}) 
+                res_part_list.append({
+                    "PartName" : req_partname,
+                    "ReservedQty": req_quantity,
+                    "_id": str(req_part_id)
+                    })
+
+            else:
+                # If no, determine missing quantity and trigger procurement process (triggers notification microservice)
+                available_quantity = part['Qty']
+                missing_quantity = req_quantity - available_quantity
+                collection.update_one({'_id': req_part_id}, {'$set': {'Qty': 0}})
+                res_part_list.append({
+                    "PartName" : req_partname,
+                    "ReservedQty": req_quantity,
+                    "_id": str(req_part_id)
+                    })
+                procurement_part_list.append({
+                    "PartName" : req_partname,
+                    "ProcuredQty": missing_quantity,
+                    "_id": str(req_part_id)})
+
+        except:
+            error_part_list.append(f'{req_part_id}')
+            continue
+
+    if len(error_part_list):
         return jsonify({
+                "code": 500,
+                "message": "Error occurred when updating inventory.",
+                "data": {
+                    "error_part_list": error_part_list,
+                    "res_part_list": res_part_list,
+                    "procurement_part_list": procurement_part_list
+                }
+            }), 500
+
+    return jsonify({
                 "code": 200,
-                "message": "Quantity reserved"
+                "message": "Part(s) reserved.",
+                "data": {
+                    "res_part_list": res_part_list,
+                    "procurement_part_list": procurement_part_list
+                }
             }), 200
-        
-    else:
-        # If no, determine missing quantity and trigger procurement process (triggers notification microservice)
-        available_quantity = part['Qty']
-        missing_quantity = req_quantity - available_quantity
-        
-        invoke_http(f"/email/{missing_quantity}", method='PUT')
-        return jsonify({
-            "code": 400,
-            "message" : f'Not available. Missing Quantity: {missing_quantity}. Procurement initiated.'
-        }), 400
 
 #RETURN PARTS TO DB
-@app.route("/inventory/<string:inventory_id>&<int:quantity>/return", methods = ['PUT'])
-def return_parts(inventory_id, quantity):
-    # Get part_id and quantity from request
-    req_part_id = ObjectId(inventory_id)
-    req_quantity = quantity
+@app.route("/inventory/return", methods = ['PUT'])
+def return_parts():
+    # Get parts and quantities from JSON request body
+    parts = request.get_json()
 
-    # Add quantity back to inventory database
-    part = collection.find_one({'_id': req_part_id})
-    new_qty = part['Qty'] + req_quantity
-    collection.update_one({'_id': req_part_id}, {'$set': {'Qty': new_qty}})
+    #returned parts list to return
+    returned_part_list = []
+    error_part_list = []
+
+    for each in parts:
+        # Get part_id and quantity from request
+        req_part_id = ObjectId(each.get('_id'))
+        req_quantity = int(each.get('Qty'))
+        req_partname = str(each.get('PartName'))
+
+
+        try:
+            # Add quantity back to inventory database
+            part = collection.find_one({'_id': req_part_id})
+            new_qty = part['Qty'] + req_quantity
+            collection.update_one({'_id': req_part_id}, {'$set': {'Qty': new_qty}})
+            returned_part_list.append({
+                "PartName" : req_partname,
+                "ReturnedQty": req_quantity,
+                "_id": str(req_part_id)
+                })
+
+        except:
+            error_part_list.append(f'{req_part_id}')
+            continue
+
+    if len(error_part_list):
+        return jsonify({
+                "code": 500,
+                "message": "Error: Part(s) do not exist.",
+                "data": {
+                    "error_part_list": error_part_list,
+                    "returned_part_list": returned_part_list
+                }
+            }), 500
+
 
     return jsonify({
         "code": 200,
-        "message": "Parts added back to inventory."
+        "message": "Parts added back to inventory.",
+        "data": {
+                    "returned_part_list": returned_part_list
+        }
     }), 200
  
 if __name__ == '__main__':
