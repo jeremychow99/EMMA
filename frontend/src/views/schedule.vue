@@ -153,7 +153,7 @@
 
 <script>
 import navbar from "../components/navbar.vue"
-import { equipmentURL, inventoryURL } from '../../api'
+import { equipmentURL, inventoryURL, maintenanceControllerURL } from '../../api'
 import axios from "axios";
 
 export default {
@@ -229,10 +229,23 @@ export default {
                     equipment_id: this.equipment_id,
                     schedule_datetime: formatted_datetime,
                     partlist: this.part_list
+                    // Need to include creator_id from sessionStorage
                 }
 
                 // console.log(this.part_list)
                 // console.log(data)
+
+                axios.post(`${maintenanceControllerURL}/schedule_maintenance`, data).then(response => {
+                    console.log(response.data)
+                    
+
+                    // Reset Inputs
+                    this.equipment_id = ""
+                    this.part_list = {}
+                    this.maintenance_datetime= ""
+                }).catch(error => {
+
+                })
             }
         }
     },
