@@ -42,9 +42,9 @@
         </v-row>
 
         <!-- Testing Purpose -->
-        <!-- <div>
+        <div>
             {{ part_list }}
-        </div> -->
+        </div>
         
 
         <v-tabs class="mx-auto mt-3" align-tabs="center" v-model="tab">
@@ -140,7 +140,7 @@
                                 <td class="text-center">{{ part['Qty'] }}</td>
                                 <td class="text-center">
                                     <!-- <v-text-field :id="part['_id']" type="number" width="50" value="0" min="0"></v-text-field> -->
-                                    <input type="number" :id="part['_id']" min="0" value="0" style="border: 1px solid gray; width:50%;" class="text-center" @change="UpdatePartList($event.currentTarget)">
+                                    <input type="number" :id="part['_id']" :name="part['PartName']" min="0" value="0" style="border: 1px solid gray; width:50%;" class="text-center" @change="UpdatePartList($event.currentTarget)">
                                 </td>
                             </tr>
                         </tbody>
@@ -170,7 +170,7 @@ export default {
 
             // Form Inputs
             equipment_id: "",
-            part_list: {},
+            part_list: [],
             maintenance_datetime: "",
         }
     },
@@ -188,14 +188,28 @@ export default {
             // console.log(e.value)
             let part_id = e.id
             let reserve_qty = e.value
+            let part_name = e.name
+
+            let partObj = {
+                "PartName": part_name,
+                "Qty": reserve_qty,
+                "_id": part_id
+            }
+
             let temp_part_list = this.part_list
 
+            let part_idx = temp_part_list.findIndex(part => part["_id"] === part_id)
+
+            console.log(part_idx)
+
             // Remove part from part list
-            if (reserve_qty === "0" && part_id in temp_part_list) {
-                delete temp_part_list[part_id]
-            } else {
+            if (reserve_qty === "0") {
+                temp_part_list = temp_part_list.filter(part => part["_id"] != part_id)
+            } else if (part_idx == -1) {
                 // console.log("Added Parts")
-                temp_part_list[part_id] = reserve_qty
+                temp_part_list.push(partObj)
+            } else {
+                temp_part_list[part_idx]["Qty"] = reserve_qty
             }
             
             this.part_list = temp_part_list
@@ -241,7 +255,7 @@ export default {
 
                     // Reset Inputs
                     this.equipment_id = ""
-                    this.part_list = {}
+                    this.part_list = []
                     this.maintenance_datetime= ""
                 }).catch(error => {
 

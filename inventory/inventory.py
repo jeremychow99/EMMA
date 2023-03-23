@@ -1,6 +1,3 @@
-import requests
-import json
-
 from pymongo import MongoClient
 from flask import Flask, request, jsonify
 from flask_cors import CORS
