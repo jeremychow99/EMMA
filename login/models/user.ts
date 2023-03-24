@@ -10,6 +10,8 @@ const UserSchema: mongoose.Schema = new mongoose.Schema({
     },
     password: { type: String },
     role: { type: String },
+    phone: {type: Number},
+    email: {type: String},
 });
 
 const iss = "test123";
