@@ -261,7 +261,10 @@ export default {
 
                 })
             }
-        }
+        },
+        checkAvailableTechnicians() {
+            axios.get()
+        },
     },
     async mounted() {
         let eqp_result = await axios.get(equipmentURL)

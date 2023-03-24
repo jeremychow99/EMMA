@@ -1,25 +1,34 @@
 <template>
   <div class="d-flex align-center justify-center" style="height: 100vh">
-    <v-sheet width="400" class="mx-auto">
-      <button @click="test">test</button>
-      <button @click="reset">reset token</button>
-      <v-form fast-fail @submit.prevent="login">
-        <v-text-field v-model="username" label="User Name"></v-text-field>
-        <v-text-field v-model="password" label="Password"></v-text-field>
-        <a href="#" class="text-body-2 font-weight-regular">Forgot Password?</a>
+    <v-container>
+      <v-sheet width="800" class="mx-auto rounded-xl" color="teal-lighten-3" >
+        <v-row class="align-center justify-center">
+          <img
+            src="/title.png"
+            style="width: 60%; height: auto; margin-bottom: 100px"
+          />
+        </v-row>
+        <v-row class="justify-center">
+          <div>
+            <v-form fast-fail @submit.prevent="login" style="width: 500px;">
+              <v-text-field v-model="username" label="User Name" style="background-color: white;" ></v-text-field>
+              <v-text-field v-model="password" label="Password" style="background-color: white;"></v-text-field>
 
-        <v-btn type="submit" color="primary" block class="mt-2">Sign in</v-btn>
-      </v-form>
-      <div class="mt-2">
-        <p class="text-body-2">
-          Don't have an account? <a href="#">Sign Up</a>
-        </p>
-      </div>
-    </v-sheet>
+              <v-btn type="submit" block class="mt-2">Sign in</v-btn>
+            </v-form>
+            <div class="mt-2">
+              <p class="text-body-2">
+                Don't have an account? <a href="#">Sign Up</a>
+              </p>
+            </div>
+          </div>
+        </v-row>
+      </v-sheet>
+    </v-container>
   </div>
 </template>
 <script>
-import axios from 'axios'
+import axios from "axios";
 export default {
   data() {
     return {
@@ -28,27 +37,22 @@ export default {
     };
   },
   methods: {
-    reset(){
-      localStorage.clear()
+    reset() {
+      localStorage.clear();
       console.log(localStorage.token);
     },
     test() {
       axios
-        .get(
-          "http://localhost:8000/api/v1/equipment",
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-              "Authorization": "Bearer " + localStorage.token,
-            },
-          }
-        )
+        .get("http://localhost:8000/api/v1/equipment", {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            Authorization: "Bearer " + localStorage.token,
+          },
+        })
         .then((response) => {
           console.log(response);
-
-          }
-        )
+        })
         .catch((err) => {
           console.log("ERROR" + err.message);
         });
@@ -86,7 +90,6 @@ export default {
   },
   created() {
     console.log(localStorage.token);
-    console.log(localStorage.token);
-  }
+  },
 };
 </script>

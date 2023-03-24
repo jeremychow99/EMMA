@@ -5,7 +5,7 @@ import main from "../views/main.vue"
 import schedule from "../views/schedule.vue";
 import startMaintenance from "../views/startMaintenance.vue";
 import endMaintenance from "../views/endMaintenance.vue";
-
+import dashboard from "../views/dashboard.vue";
 const routes = [
     {
         path: "/login",
@@ -31,6 +31,11 @@ const routes = [
         path: "/endMaintenance",
         name: "endMaintenance",
         component: endMaintenance
+    },
+    {
+        path: "/dashboard",
+        name: "dashboard",
+        component: dashboard
     }
 ]
 
@@ -39,5 +44,11 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
 });
+
+router.beforeEach( async (to, from) => {
+    if(localStorage.token == null && to.name !== 'login'){
+        return { name: 'login'}
+    }
+})
 
 export default router;
