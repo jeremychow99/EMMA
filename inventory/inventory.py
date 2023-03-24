@@ -76,7 +76,7 @@ def reserve_parts():
                 collection.update_one({'_id': req_part_id}, {'$set': {'Qty': new_qty}}) 
                 res_part_list.append({
                     "PartName" : req_partname,
-                    "ReservedQty": req_quantity,
+                    "Qty": req_quantity,
                     "_id": str(req_part_id)
                     })
 
@@ -144,7 +144,7 @@ def return_parts():
             collection.update_one({'_id': req_part_id}, {'$set': {'Qty': new_qty}})
             returned_part_list.append({
                 "PartName" : req_partname,
-                "ReturnedQty": req_quantity,
+                "Qty": req_quantity,
                 "_id": str(req_part_id)
                 })
 
