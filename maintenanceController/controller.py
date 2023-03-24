@@ -5,6 +5,7 @@ from flask_cors import CORS
 import requests
 import amqp_setup
 import pika
+import json
 
 app = Flask(__name__)
 CORS(app)
@@ -62,7 +63,7 @@ def scheduleMaintenance():
             amqp_setup.channel.basic_publish(
                 exchange=amqp_setup.exchangename, 
                 routing_key="schedule.maintenance", 
-                body=data, 
+                body=json.dumps(data), 
                 properties=pika.BasicProperties(delivery_mode = 2)
             )
 
@@ -70,10 +71,10 @@ def scheduleMaintenance():
             return jsonify({
                 "code": maintenance_code,
                 "message": f"Maintenance for {eqp_id} has been scheduled on {scheduled_datetime}"
-            })
+            }), maintenance_code
         
         # Maintenance record already exist
-        elif maintenance_code == 404:
+        elif maintenance_code == 400:
             
             # Return reserved parts (RabbitMQ)
             print("Returning reserved parts...")
@@ -82,13 +83,13 @@ def scheduleMaintenance():
             return jsonify({
                 "code": maintenance_code,
                 "message": "Maintenance record already exists"
-            }),maintenance_code
+            })
         
         else:
             return jsonify({
                 "code": maintenance_code,
                 "message": maintenance_result['message']
-            }),maintenance_code
+            })
 
 
 
@@ -134,7 +135,7 @@ def startMaintenance(maintenance_id):
         return jsonify({
             "code": maintenance_code,
             "message": maintenance_result['message']
-        }),maintenance_code
+        })
 
 
 
@@ -189,7 +190,7 @@ def requestParts(maintenance_id):
             return jsonify({
                 "code": maintenance_code,
                 "data": reserved_list
-            })
+            }), maintenance_code
         
         # Maintenance record failure
         else:
@@ -200,7 +201,7 @@ def requestParts(maintenance_id):
             return jsonify({
                 "code": maintenance_code,
                 "message": maintenance_result['message']
-            }),maintenance_code
+            })
 
 
 
@@ -262,7 +263,7 @@ def endMaintenance(maintenance_id):
         return jsonify({
             "code": maintenance_code,
             "message": maintenance_result['message']
-        }),maintenance_code
+        })
 
 
 
@@ -290,27 +291,25 @@ def reserveParts(partList):
 
 
 def returnParts(partList):
-    data = {
-        "partList": partList
-    }
 
     amqp_setup.check_setup()
 
     amqp_setup.channel.basic_publish(
         exchange=amqp_setup.exchangename, 
         routing_key="return.parts", 
-        body=data, 
+        body=json.dumps(partList), 
         properties=pika.BasicProperties(delivery_mode = 2)
     )
 
 
 def orderParts(partList):
+
     amqp_setup.check_setup()
 
     amqp_setup.channel.basic_publish(
         exchange=amqp_setup.exchangename, 
         routing_key="order.parts", 
-        body=partList, 
+        body=json.dumps(partList), 
         properties=pika.BasicProperties(delivery_mode = 2)
     )
 
@@ -321,12 +320,14 @@ def executeMaintenance(maintenanceData, start):
     else:
         routing_key = "maintenance.end"
 
+    maintenanceData['start'] = start
+
     amqp_setup.check_setup()
 
     amqp_setup.channel.basic_publish(
         exchange=amqp_setup.exchangename, 
         routing_key=routing_key, 
-        body=maintenanceData, 
+        body=json.dumps(maintenanceData), 
         properties=pika.BasicProperties(delivery_mode = 2)
     )
 
