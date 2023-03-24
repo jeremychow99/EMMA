@@ -53,7 +53,8 @@ def get_all():
 @app.route("/inventory/reserve", methods = ['PUT']) 
 def reserve_parts():
     # Get parts and quantities from JSON request body
-    parts = request.get_json()
+    data = request.get_json()
+    parts = data['partList']
     
     #reserved parts list and procurement parts list to return
     res_part_list = []
@@ -86,12 +87,12 @@ def reserve_parts():
                 collection.update_one({'_id': req_part_id}, {'$set': {'Qty': 0}})
                 res_part_list.append({
                     "PartName" : req_partname,
-                    "ReservedQty": req_quantity,
+                    "Qty": req_quantity,
                     "_id": str(req_part_id)
                     })
                 procurement_part_list.append({
                     "PartName" : req_partname,
-                    "ProcuredQty": missing_quantity,
+                    "Qty": missing_quantity,
                     "_id": str(req_part_id)})
 
         except:
@@ -122,7 +123,8 @@ def reserve_parts():
 @app.route("/inventory/return", methods = ['PUT'])
 def return_parts():
     # Get parts and quantities from JSON request body
-    parts = request.get_json()
+    data = request.get_json()
+    parts = data['partList']
 
     #returned parts list to return
     returned_part_list = []

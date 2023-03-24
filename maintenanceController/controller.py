@@ -1,12 +1,13 @@
 from flask import Flask, request, jsonify
-import os
-from dotenv import load_dotenv, environ
+from flask_cors import CORS
+# import os
+# from dotenv import load_dotenv
 import requests
-
 import amqp_setup
 import pika
 
 app = Flask(__name__)
+CORS(app)
 
 ################# API Routes ######################
 maintenanceAPI = 'http://127.0.0.1:5000/maintenance'
@@ -15,7 +16,7 @@ inventoryAPI = 'http://127.0.0.1:5001/inventory'
 
 
 
-@app.route("/schedule_maintenance")
+@app.route("/schedule_maintenance", methods=['POST'])
 def scheduleMaintenance():
     '''
     1. Reserve Parts (HTTP)
@@ -23,34 +24,41 @@ def scheduleMaintenance():
     3. Order Parts
     4. Send Notification
     '''
+    print("Schedule Maintenance Function Triggered!")
+
     data = request.get_json()
     eqp_id = data["equipment_id"]
     scheduled_datetime = data["schedule_datetime"]
     requested_parts = data["partlist"]
 
     # 1. Reserve Parts (HTTP)
+    print("List of parts to reserve: ", requested_parts)
+    print("Attempting to reserve parts...")
     result = reserveParts(requested_parts)
 
     if type(result) != str:
-
+        print("Parts reserved...")
         reserved_list, missing_list = result
 
         # 2. Create Maintenance Record
-        data['partList'] = reserved_list
+        data.update({'partlist': reserved_list})
 
-        maintenance_result = requests.request('POST', maintenanceAPI, json = data)
+        print("Creating maintenance record...")
+        maintenance_result = requests.request('POST', maintenanceAPI, json = data).json()
         maintenance_code = maintenance_result['code']
 
         amqp_setup.check_setup()
 
         # Successfully scheduled maintenance
-        if maintenance_code == '201':
+        if maintenance_code == 201:
 
             # 3. Order Parts
             if len(missing_list):
+                print("Ordering missing parts...")
                 orderParts(missing_list)
 
             # 4. Send out Notification
+            print("Sending Notification...")
             amqp_setup.channel.basic_publish(
                 exchange=amqp_setup.exchangename, 
                 routing_key="schedule.maintenance", 
@@ -58,16 +66,17 @@ def scheduleMaintenance():
                 properties=pika.BasicProperties(delivery_mode = 2)
             )
 
-
+            print("Completed operations")
             return jsonify({
                 "code": maintenance_code,
                 "message": f"Maintenance for {eqp_id} has been scheduled on {scheduled_datetime}"
             })
         
         # Maintenance record already exist
-        elif maintenance_code == '404':
+        elif maintenance_code == 404:
             
             # Return reserved parts (RabbitMQ)
+            print("Returning reserved parts...")
             returnParts(reserved_list)
 
             return jsonify({
@@ -85,7 +94,7 @@ def scheduleMaintenance():
 
 
     
-@app.route("/start_maintenance/<string:maintenance_id>")
+@app.route("/start_maintenance/<string:maintenance_id>", methods=['PUT'])
 def startMaintenance(maintenance_id):
     '''
     1. Send update equipment (Status to maintenance)
@@ -108,12 +117,12 @@ def startMaintenance(maintenance_id):
         "status": maintenance_status
     }
 
-    eqp_result = requests.request('PUT', f'{equipmentAPI}/{eqp_id}', json = eqp_data)
+    eqp_result = requests.request('PUT', f'{equipmentAPI}/{eqp_id}', json = eqp_data).json()
 
-    maintenance_result = requests.request('PUT', f'{maintenanceAPI}/{maintenance_id}', json = maintenance_data)
+    maintenance_result = requests.request('PUT', f'{maintenanceAPI}/{maintenance_id}', json = maintenance_data).json
     maintenance_code = maintenance_result['code']
 
-    if maintenance_code == '201':
+    if maintenance_code == 201:
         executeMaintenance(data, start=True)
 
         return jsonify({
@@ -130,19 +139,72 @@ def startMaintenance(maintenance_id):
 
 
 
-@app.route("/request_parts/<string:maintenance_id>")
+@app.route("/request_parts/<string:maintenance_id>", methods=['PUT'])
 def requestParts(maintenance_id):
     '''
     1. Reserve Parts (HTTP)
     2. Send update maintenance (Partlist)
     '''
+    data = request.get_json()
+    requested_parts = data["req_partlist"]
+    current_parts = data["partlist"]
+
+    result = reserveParts(requested_parts)
     
+    if type(result) != str:
+        reserved_list, missing_list = result
 
-    pass
+        additional_parts_dict = {}
+        for part in reserved_list:
+            additional_parts_dict[part['_id']] = part['Qty']
+
+        for part in current_parts:
+            if part['_id'] in additional_parts_dict:
+                part['Qty'] += additional_parts_dict[part['_id']]
+                del additional_parts_dict[part['_id']]
+
+        # New additional parts
+        if len(additional_parts_dict.keys()):
+            for part in reserved_list:
+                if part['_id'] in additional_parts_dict.keys():
+                    current_parts.append(part)
+        
+
+        update = {
+            'partlist': current_parts
+        }
+        
+        maintenance_result = requests.request('POST', f'{maintenanceAPI}/{maintenance_id}', json = update)
+        maintenance_code = maintenance_result['code']
+
+        amqp_setup.check_setup()
+
+        # Successfully scheduled maintenance
+        if maintenance_code == 201:
+
+            # 3. Order Parts
+            if len(missing_list):
+                orderParts(missing_list)
+
+            return jsonify({
+                "code": maintenance_code,
+                "data": reserved_list
+            })
+        
+        # Maintenance record failure
+        else:
+            
+            # Return reserved parts (RabbitMQ)
+            returnParts(reserved_list)
+
+            return jsonify({
+                "code": maintenance_code,
+                "message": maintenance_result['message']
+            }),maintenance_code
 
 
 
-@app.route("/end_maintenance/<string:maintenance_id>")
+@app.route("/end_maintenance/<string:maintenance_id>", methods=['PUT'])
 def endMaintenance(maintenance_id):
     '''
     1. Send update maintenance (Last Service time, Status, Description)
@@ -206,13 +268,18 @@ def endMaintenance(maintenance_id):
 
 
 def reserveParts(partList):
-    parts_result = requests.request('PUT', inventoryAPI, json=partList)
+    data = {
+        "partList": partList
+    }
+
+    parts_result = requests.request('PUT', f'{inventoryAPI}/reserve', json=data).json()
+    print("Part Results: ", parts_result)
     code = parts_result["code"] 
 
     # Parts sucessfully reserved
-    if code == '201':
-        reservedList = parts_result['reservedList']
-        missingList = parts_result['missingList']
+    if code == 200:
+        reservedList = parts_result['data']['res_part_list']
+        missingList = parts_result['data']['procurement_part_list']
 
         return (reservedList, missingList)
     
@@ -220,16 +287,26 @@ def reserveParts(partList):
         return code['message']
 
 
+
+
 def returnParts(partList):
+    data = {
+        "partList": partList
+    }
+
+    amqp_setup.check_setup()
+
     amqp_setup.channel.basic_publish(
         exchange=amqp_setup.exchangename, 
         routing_key="return.parts", 
-        body=partList, 
+        body=data, 
         properties=pika.BasicProperties(delivery_mode = 2)
     )
 
 
 def orderParts(partList):
+    amqp_setup.check_setup()
+
     amqp_setup.channel.basic_publish(
         exchange=amqp_setup.exchangename, 
         routing_key="order.parts", 
@@ -244,9 +321,15 @@ def executeMaintenance(maintenanceData, start):
     else:
         routing_key = "maintenance.end"
 
+    amqp_setup.check_setup()
+
     amqp_setup.channel.basic_publish(
         exchange=amqp_setup.exchangename, 
         routing_key=routing_key, 
         body=maintenanceData, 
         properties=pika.BasicProperties(delivery_mode = 2)
     )
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080, debug=True)
