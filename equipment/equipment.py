@@ -102,7 +102,9 @@ def create_equipment():
 def update_equipment(equipment_id):
     equipment_id = ObjectId(equipment_id)
     data = request.get_json()
-    data["last_maintained"] = datetime.strptime(data["last_maintained"], '%d-%m-%Y %H:%M:%S')
+
+    if "last_maintained" in data:
+        data["last_maintained"] = datetime.strptime(data["last_maintained"], '%d-%m-%Y %H:%M:%S')
 
     try:
         result = EQUIPMENT_COLLECTION.update_one({"_id": equipment_id}, {"$set": data})

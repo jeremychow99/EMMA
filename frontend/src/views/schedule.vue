@@ -42,9 +42,9 @@
         </v-row>
 
         <!-- Testing Purpose -->
-        <div>
+        <!-- <div>
             {{ part_list }}
-        </div>
+        </div> -->
         
 
         <v-tabs class="mx-auto mt-3" align-tabs="center" v-model="tab">
@@ -249,14 +249,22 @@ export default {
                 // console.log(this.part_list)
                 // console.log(data)
 
-                axios.post(`${maintenanceControllerURL}/schedule_maintenance`, data).then(response => {
+
+                axios.post(`${maintenanceControllerURL}/schedule_maintenance`, data, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                        Authorization: "Bearer " + localStorage.token,
+                    }
+                }).then(response => {
                     console.log(response.data)
                     
-
                     // Reset Inputs
                     this.equipment_id = ""
                     this.part_list = []
                     this.maintenance_datetime= ""
+
+                    this.$router.go()
                 }).catch(error => {
 
                 })

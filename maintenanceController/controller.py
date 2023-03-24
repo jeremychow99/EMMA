@@ -5,6 +5,7 @@ from flask_cors import CORS
 import requests
 import amqp_setup
 import pika
+import json
 
 app = Flask(__name__)
 CORS(app)
@@ -27,6 +28,7 @@ def scheduleMaintenance():
     print("Schedule Maintenance Function Triggered!")
 
     data = request.get_json()
+    print(data)
     eqp_id = data["equipment_id"]
     scheduled_datetime = data["schedule_datetime"]
     requested_parts = data["partlist"]
@@ -62,7 +64,7 @@ def scheduleMaintenance():
             amqp_setup.channel.basic_publish(
                 exchange=amqp_setup.exchangename, 
                 routing_key="schedule.maintenance", 
-                body=data, 
+                body=json.dumps(data), 
                 properties=pika.BasicProperties(delivery_mode = 2)
             )
 
@@ -70,10 +72,10 @@ def scheduleMaintenance():
             return jsonify({
                 "code": maintenance_code,
                 "message": f"Maintenance for {eqp_id} has been scheduled on {scheduled_datetime}"
-            })
+            }), maintenance_code
         
         # Maintenance record already exist
-        elif maintenance_code == 404:
+        elif maintenance_code == 400:
             
             # Return reserved parts (RabbitMQ)
             print("Returning reserved parts...")
@@ -82,13 +84,13 @@ def scheduleMaintenance():
             return jsonify({
                 "code": maintenance_code,
                 "message": "Maintenance record already exists"
-            }),maintenance_code
+            })
         
         else:
             return jsonify({
                 "code": maintenance_code,
                 "message": maintenance_result['message']
-            }),maintenance_code
+            })
 
 
 
@@ -119,7 +121,7 @@ def startMaintenance(maintenance_id):
 
     eqp_result = requests.request('PUT', f'{equipmentAPI}/{eqp_id}', json = eqp_data).json()
 
-    maintenance_result = requests.request('PUT', f'{maintenanceAPI}/{maintenance_id}', json = maintenance_data).json
+    maintenance_result = requests.request('PUT', f'{maintenanceAPI}/{maintenance_id}', json = maintenance_data).json()
     maintenance_code = maintenance_result['code']
 
     if maintenance_code == 201:
@@ -134,7 +136,7 @@ def startMaintenance(maintenance_id):
         return jsonify({
             "code": maintenance_code,
             "message": maintenance_result['message']
-        }),maintenance_code
+        })
 
 
 
@@ -149,19 +151,26 @@ def requestParts(maintenance_id):
     requested_parts = data["req_partlist"]
     current_parts = data["partlist"]
 
+    print(current_parts)
+
     result = reserveParts(requested_parts)
     
     if type(result) != str:
         reserved_list, missing_list = result
+        print(reserved_list)
+        print(missing_list)
 
         additional_parts_dict = {}
-        for part in reserved_list:
-            additional_parts_dict[part['_id']] = part['Qty']
 
-        for part in current_parts:
-            if part['_id'] in additional_parts_dict:
-                part['Qty'] += additional_parts_dict[part['_id']]
-                del additional_parts_dict[part['_id']]
+        # Parts is available and reserved
+        if len(reserved_list):
+            for part in reserved_list:
+                additional_parts_dict[part['_id']] = int(part['Qty'])
+
+            for part in current_parts:
+                if part['_id'] in additional_parts_dict:
+                    part['Qty'] = str(int(part['Qty']) + additional_parts_dict[part['_id']])
+                    del additional_parts_dict[part['_id']]
 
         # New additional parts
         if len(additional_parts_dict.keys()):
@@ -173,8 +182,10 @@ def requestParts(maintenance_id):
         update = {
             'partlist': current_parts
         }
+
+        print(current_parts)
         
-        maintenance_result = requests.request('POST', f'{maintenanceAPI}/{maintenance_id}', json = update)
+        maintenance_result = requests.request('PUT', f'{maintenanceAPI}/{maintenance_id}', json = update).json()
         maintenance_code = maintenance_result['code']
 
         amqp_setup.check_setup()
@@ -188,8 +199,8 @@ def requestParts(maintenance_id):
 
             return jsonify({
                 "code": maintenance_code,
-                "data": reserved_list
-            })
+                "data": current_parts
+            }), maintenance_code
         
         # Maintenance record failure
         else:
@@ -200,7 +211,7 @@ def requestParts(maintenance_id):
             return jsonify({
                 "code": maintenance_code,
                 "message": maintenance_result['message']
-            }),maintenance_code
+            })
 
 
 
@@ -230,10 +241,12 @@ def endMaintenance(maintenance_id):
     # Tabulate parts used
     for part in part_list:
         if part['_id'] in return_parts_dict:
-            part['Qty'] = part['Qty'] - return_parts_dict[part['_id']]
+            part['Qty'] = int(part['Qty']) - int(return_parts_dict[part['_id']])
+            part['Qty'] = str(part['Qty'])
 
     eqp_data = {
-        "equipment_status": eqp_status
+        "equipment_status": eqp_status,
+        "last_maintained": end_datetime
     }
 
     maintenance_data = {
@@ -243,12 +256,12 @@ def endMaintenance(maintenance_id):
         "partlist": part_list
     }
 
-    maintenance_result = requests.request('PUT', f'{maintenanceAPI}/{maintenance_id}', json = maintenance_data)
+    maintenance_result = requests.request('PUT', f'{maintenanceAPI}/{maintenance_id}', json = maintenance_data).json()
     maintenance_code = maintenance_result['code']
 
-    eqp_result = requests.request('PUT', f'{equipmentAPI}/{eqp_id}', json = eqp_data)
+    eqp_result = requests.request('PUT', f'{equipmentAPI}/{eqp_id}', json = eqp_data).json()
 
-    if maintenance_code == '201':
+    if maintenance_code == 201:
         executeMaintenance(data, start=False)
 
         returnParts(return_parts)
@@ -262,7 +275,7 @@ def endMaintenance(maintenance_id):
         return jsonify({
             "code": maintenance_code,
             "message": maintenance_result['message']
-        }),maintenance_code
+        })
 
 
 
@@ -290,27 +303,25 @@ def reserveParts(partList):
 
 
 def returnParts(partList):
-    data = {
-        "partList": partList
-    }
 
     amqp_setup.check_setup()
 
     amqp_setup.channel.basic_publish(
         exchange=amqp_setup.exchangename, 
         routing_key="return.parts", 
-        body=data, 
+        body=json.dumps(partList), 
         properties=pika.BasicProperties(delivery_mode = 2)
     )
 
 
 def orderParts(partList):
+
     amqp_setup.check_setup()
 
     amqp_setup.channel.basic_publish(
         exchange=amqp_setup.exchangename, 
         routing_key="order.parts", 
-        body=partList, 
+        body=json.dumps(partList), 
         properties=pika.BasicProperties(delivery_mode = 2)
     )
 
@@ -321,12 +332,14 @@ def executeMaintenance(maintenanceData, start):
     else:
         routing_key = "maintenance.end"
 
+    maintenanceData['start'] = start
+
     amqp_setup.check_setup()
 
     amqp_setup.channel.basic_publish(
         exchange=amqp_setup.exchangename, 
         routing_key=routing_key, 
-        body=maintenanceData, 
+        body=json.dumps(maintenanceData), 
         properties=pika.BasicProperties(delivery_mode = 2)
     )
 
