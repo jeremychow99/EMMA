@@ -13,13 +13,6 @@ func failOnError(err error, msg string) {
 	}
 }
 
-// func init() {
-// 	err := godotenv.Load()
-// 	if err != nil {
-// 		log.Fatal("Error loading .env file")
-// 	}
-// }
-
 func main() {
 	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
@@ -29,35 +22,62 @@ func main() {
 	failOnError(err, "Failed to open a channel")
 	defer ch.Close()
 
-	q, err := ch.QueueDeclare(
-		"hello", // name
-		false,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
+	//RABBITMQ CONSUMERS
+	maintenanceMsgs, err := ch.Consume(
+		"Maintenance", // queue
+		"",                // consumer
+		true,              // auto ack
+		false,             // exclusive
+		false,             // no local
+		false,             // no wait
+		nil,               // args
 	)
-	failOnError(err, "Failed to declare a queue")
-	msgs, err := ch.Consume(
-		q.Name, // queue
-		"",     // consumer
-		true,   // auto-ack
-		false,  // exclusive
-		false,  // no-local
-		false,  // no-wait
-		nil,    // args
+	failOnError(err, "Failed to register a consumer")
+	execMsgs, err := ch.Consume(
+		"Execute_Maintenance", // queue
+		"",                // consumer
+		true,              // auto ack
+		false,             // exclusive
+		false,             // no local
+		false,             // no wait
+		nil,               // args
 	)
 	failOnError(err, "Failed to register a consumer")
 
+	orderMsgs, err := ch.Consume(
+		"Order_Parts", // queue
+		"",                // consumer
+		true,              // auto ack
+		false,             // exclusive
+		false,             // no local
+		false,             // no wait
+		nil,               // args
+	)
+	failOnError(err, "Failed to register a consumer")
+
+	returnMsgs, err := ch.Consume(
+		"Return_Parts", // queue
+		"",                // consumer
+		true,              // auto ack
+		false,             // exclusive
+		false,             // no local
+		false,             // no wait
+		nil,               // args
+	)
+	failOnError(err, "Failed to register a consumer")
+
+	
+	
+	
 	var forever chan struct{}
 
 	go func() {
-		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
+		for d := range maintenanceMsgs {
+			log.Printf(" [x] %s", d.Body)
 			SendMessage()
 		}
 	}()
 
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	log.Printf(" [*] Waiting for logs. To exit press CTRL+C")
 	<-forever
 }
