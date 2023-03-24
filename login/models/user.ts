@@ -9,6 +9,7 @@ const UserSchema: mongoose.Schema = new mongoose.Schema({
         unique: true
     },
     password: { type: String },
+    role: { type: String },
 });
 
 const iss = "test123";
@@ -16,6 +17,9 @@ const iss = "test123";
 UserSchema.pre('save', async function () {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt)
+    if(this.role == ""){
+        this.role == "TECHNICIAN";
+    }
 
 })
 
