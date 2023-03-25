@@ -1,9 +1,10 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 
-	// "github.com/joho/godotenv"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -11,6 +12,16 @@ func failOnError(err error, msg string) {
 	if err != nil {
 		log.Panicf("%s: %s", msg, err)
 	}
+}
+
+type MaintenanceMsg struct {
+	EquipmentID      string `json:"equipment_id"`
+	ScheduleDatetime string `json:"schedule_datetime"`
+	Partlist         []struct {
+		PartName string `json:"PartName"`
+		Qty      int    `json:"Qty"`
+		ID       string `json:"_id"`
+	} `json:"partlist"`
 }
 
 func main() {
@@ -25,59 +36,68 @@ func main() {
 	//RABBITMQ CONSUMERS
 	maintenanceMsgs, err := ch.Consume(
 		"Maintenance", // queue
-		"",                // consumer
-		true,              // auto ack
-		false,             // exclusive
-		false,             // no local
-		false,             // no wait
-		nil,               // args
+		"",            // consumer
+		true,          // auto ack
+		false,         // exclusive
+		false,         // no local
+		false,         // no wait
+		nil,           // args
 	)
 	failOnError(err, "Failed to register a consumer")
 	execMsgs, err := ch.Consume(
 		"Execute_Maintenance", // queue
-		"",                // consumer
-		true,              // auto ack
-		false,             // exclusive
-		false,             // no local
-		false,             // no wait
-		nil,               // args
+		"",                    // consumer
+		true,                  // auto ack
+		false,                 // exclusive
+		false,                 // no local
+		false,                 // no wait
+		nil,                   // args
 	)
 	failOnError(err, "Failed to register a consumer")
 
-	orderMsgs, err := ch.Consume(
-		"Order_Parts", // queue
-		"",                // consumer
-		true,              // auto ack
-		false,             // exclusive
-		false,             // no local
-		false,             // no wait
-		nil,               // args
-	)
-	failOnError(err, "Failed to register a consumer")
+	// orderMsgs, err := ch.Consume(
+	// 	"Order_Parts", // queue
+	// 	"",            // consumer
+	// 	true,          // auto ack
+	// 	false,         // exclusive
+	// 	false,         // no local
+	// 	false,         // no wait
+	// 	nil,           // args
+	// )
+	// failOnError(err, "Failed to register a consumer")
 
-	returnMsgs, err := ch.Consume(
-		"Return_Parts", // queue
-		"",                // consumer
-		true,              // auto ack
-		false,             // exclusive
-		false,             // no local
-		false,             // no wait
-		nil,               // args
-	)
-	failOnError(err, "Failed to register a consumer")
+	// returnMsgs, err := ch.Consume(
+	// 	"Return_Parts", // queue
+	// 	"",             // consumer
+	// 	true,           // auto ack
+	// 	false,          // exclusive
+	// 	false,          // no local
+	// 	false,          // no wait
+	// 	nil,            // args
+	// )
+	// failOnError(err, "Failed to register a consumer")
 
-	
-	
-	
 	var forever chan struct{}
 
 	go func() {
 		for d := range maintenanceMsgs {
-			log.Printf(" [x] %s", d.Body)
-			SendMessage()
+			var maintenanceMsg MaintenanceMsg
+		
+			err := json.Unmarshal(d.Body, &maintenanceMsg)
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println(maintenanceMsg.EquipmentID)
+			SendMessage(maintenanceMsg.EquipmentID)
 		}
 	}()
 
+	go func() {
+		for d := range execMsgs {
+			log.Printf(" [x] %s", d.Body)
+			// SendMessage()
+		}
+	}()
 	log.Printf(" [*] Waiting for logs. To exit press CTRL+C")
 	<-forever
 }

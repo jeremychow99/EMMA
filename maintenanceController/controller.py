@@ -7,14 +7,17 @@ import amqp_setup
 import pika
 import json
 
+import grpc_server
+
 app = Flask(__name__)
 CORS(app)
 
+def testFunc1():
+    print('hello')
 ################# API Routes ######################
 maintenanceAPI = 'http://127.0.0.1:5000/maintenance'
 equipmentAPI = 'http://127.0.0.1:4999/equipment'
 inventoryAPI = 'http://127.0.0.1:5001/inventory'
-
 
 
 @app.route("/schedule_maintenance", methods=['POST'])
