@@ -2,8 +2,6 @@ package main
 
 import (
 	"log"
-
-	// "github.com/joho/godotenv"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -33,41 +31,40 @@ func main() {
 		nil,               // args
 	)
 	failOnError(err, "Failed to register a consumer")
-	execMsgs, err := ch.Consume(
-		"Execute_Maintenance", // queue
-		"",                // consumer
-		true,              // auto ack
-		false,             // exclusive
-		false,             // no local
-		false,             // no wait
-		nil,               // args
-	)
-	failOnError(err, "Failed to register a consumer")
-
-	orderMsgs, err := ch.Consume(
-		"Order_Parts", // queue
-		"",                // consumer
-		true,              // auto ack
-		false,             // exclusive
-		false,             // no local
-		false,             // no wait
-		nil,               // args
-	)
-	failOnError(err, "Failed to register a consumer")
-
-	returnMsgs, err := ch.Consume(
-		"Return_Parts", // queue
-		"",                // consumer
-		true,              // auto ack
-		false,             // exclusive
-		false,             // no local
-		false,             // no wait
-		nil,               // args
-	)
-	failOnError(err, "Failed to register a consumer")
-
 	
-	
+	// execMsgs, err := ch.Consume(
+	// 	"Execute_Maintenance", // queue
+	// 	"",                // consumer
+	// 	true,              // auto ack
+	// 	false,             // exclusive
+	// 	false,             // no local
+	// 	false,             // no wait
+	// 	nil,               // args
+	// )
+	// failOnError(err, "Failed to register a consumer")
+
+	// orderMsgs, err := ch.Consume(
+	// 	"Order_Parts", // queue
+	// 	"",                // consumer
+	// 	true,              // auto ack
+	// 	false,             // exclusive
+	// 	false,             // no local
+	// 	false,             // no wait
+	// 	nil,               // args
+	// )
+	// failOnError(err, "Failed to register a consumer")
+
+	// returnMsgs, err := ch.Consume(
+	// 	"Return_Parts", // queue
+	// 	"",                // consumer
+	// 	true,              // auto ack
+	// 	false,             // exclusive
+	// 	false,             // no local
+	// 	false,             // no wait
+	// 	nil,               // args
+	// )
+	// failOnError(err, "Failed to register a consumer")
+
 	
 	var forever chan struct{}
 
