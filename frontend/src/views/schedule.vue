@@ -31,8 +31,20 @@
                         <p class="text-right font-weight-regular">Maintenance Datetime: </p>
                     </v-col>
                     <v-col cols="7" style="padding:8px 16px">
-                        <input type="datetime-local" id="maintenance-datetime"
-                        name="maintenance-datetime" v-model="maintenance_datetime">
+                        <input type="date" id="maintenance-datetime"
+                        name="maintenance-datetime" v-model="maintenance_date" @change="checkBusyTechnicians">
+                    </v-col>
+                </v-row>
+                <v-row class="mt-0 mx-2">
+                    <v-col cols="5" style="padding: 8px 16px 8px 8px">
+                        <p class="text-right font-weight-regular">Technician: </p>
+                    </v-col>
+                    <v-col cols="7" style="padding:8px 16px">
+                        <p v-if="availableTechnicians.length == 0" style="color: red;">Not Available Technicians</p>
+                        <select v-else id="technician-select" name="technician-select" v-model="selected_technician" :disabled="!maintenance_date" style="width: 200px; border: solid 1px gray; border-radius: 5px;text-align: center;">
+                            <option value="" disabled selected>Select your option</option>
+                            <option v-for="tech in technician_arr">{{ tech.name }}</option>
+                        </select>
                     </v-col>
                 </v-row>
             </v-col>
@@ -43,7 +55,7 @@
 
         <!-- Testing Purpose -->
         <!-- <div>
-            {{ part_list }}
+            {{ technician_arr }}
         </div> -->
         
 
@@ -153,7 +165,7 @@
 
 <script>
 import navbar from "../components/navbar.vue"
-import { equipmentURL, inventoryURL, maintenanceControllerURL } from '../../api'
+import { equipmentURL, inventoryURL, maintenanceURL, maintenanceControllerURL, userURL } from '../../api'
 import axios from "axios"
 
 export default {
@@ -167,17 +179,36 @@ export default {
             date: null,
             equipment_arr: [],
             inventory_arr: [],
+            technician_arr: [],
+
+            busytech_arr: [],
 
             // Form Inputs
             equipment_id: "",
             part_list: [],
-            maintenance_datetime: "",
+            maintenance_date: "",
+            selected_technician: ""
         }
     },
 
     computed: {
         formValid() {
-            return (this.equipment_id != "" && this.maintenance_datetime != "")
+            return (this.equipment_id != "" && this.maintenance_date != "" && this.selected_technician != "")
+        },
+
+        availableTechnicians() {
+
+            let availabletech_arr = []
+
+            for (let technician of this.technician_arr) {
+
+                if (!this.busytech_arr.includes(technician['_id'])) {
+                    availabletech_arr.push(technician)
+                }
+
+            }
+
+            return availabletech_arr
         }
     },
 
@@ -218,30 +249,30 @@ export default {
         ScheduleMaintenance() {
             // console.log(this.equipment_id)
             // console.log(this.part_list)
-            // console.log(this.maintenance_datetime)
+            console.log(this.maintenance_date)
 
-            var datetime_arr = this.maintenance_datetime.split("T");
-            var date = datetime_arr[0]
-            var time = datetime_arr[1]
-            var date_arr = date.split("-")
+            // var datetime_arr = this.maintenance_date.split("T");
+            // var date = datetime_arr[0]
+            // var time = datetime_arr[1]
+            // var date_arr = date.split("-")
 
-            var month = date_arr[1]
-            var day = date_arr[2]
-            var year = date_arr[0]
+            // var month = date_arr[1]
+            // var day = date_arr[2]
+            // var year = date_arr[0]
 
-            // console.log(month)
-            // console.log(day)
-            // console.log(year)
+            // // console.log(month)
+            // // console.log(day)
+            // // console.log(year)
 
-            var formatted_datetime = day + '-' + month + '-' + year + " " + time + ":00"
-            console.log(formatted_datetime)
+            // var formatted_datetime = day + '-' + month + '-' + year + " " + time + ":00"
+            // console.log(formatted_datetime)
 
 
-            if (this.equipment_id != "" && this.maintenance_datetime != "") {
+            if (this.equipment_id != "" && this.maintenance_date != "") {
                 console.log("Submitted schedule maintenance request")
                 let data = {
                     equipment_id: this.equipment_id,
-                    schedule_datetime: formatted_datetime,
+                    schedule_date: this.maintenance_date,
                     partlist: this.part_list
                     // Need to include creator_id from sessionStorage
                 }
@@ -262,7 +293,7 @@ export default {
                     // Reset Inputs
                     this.equipment_id = ""
                     this.part_list = []
-                    this.maintenance_datetime= ""
+                    this.maintenance_date= ""
 
                     this.$router.go()
                 }).catch(error => {
@@ -270,14 +301,37 @@ export default {
                 })
             }
         },
-        checkAvailableTechnicians() {
-            axios.get()
+
+        async checkBusyTechnicians() {
+            // console.log(this.maintenance_date)
+            await axios.get(`${maintenanceURL}/busy_technicians/${this.maintenance_date}`).then(response => {
+                console.log(response.data)
+
+                let busy_arr = response.data.data
+
+                this.busytech_arr = busy_arr
+            })
+
+
         },
     },
     async mounted() {
         let eqp_result = await axios.get(equipmentURL)
         let inv_result = await axios.get(inventoryURL)
+        let user_result = await axios.get(`${userURL}/all`)
+            
+        let user_arr = user_result.data.users
+        console.log(user_arr)
+        let temp_user = []
+        
+        for (let user of user_arr) {
+            console.log(user)
+            if (user.role === "TECHNICIAN") {
+                temp_user.push(user)
+            }
+        }
 
+        this.technician_arr = temp_user
         this.equipment_arr = eqp_result.data.data.equipment
         this.inventory_arr = inv_result.data.data.parts
     }

@@ -30,7 +30,7 @@ def json(doc):
         doc['_id'] = str(doc['_id'])
 
         # Convert Datetime to string (dd/mm/yyyy hh:mm:ss)
-        datetime_keys = ['schedule_datetime', 'start_datetime', 'end_datetime']
+        datetime_keys = ['start_datetime', 'end_datetime']
         for key in datetime_keys:
             if key in doc:
                 doc[key] = datetime.strftime(doc[key], '%d-%m-%Y %H:%M:%S')
@@ -110,7 +110,7 @@ def update_maintenance(maintenance_id):
 
     data = request.get_json()
 
-    datetime_keys = ['schedule_datetime', 'start_datetime', 'end_datetime']
+    datetime_keys = ['start_datetime', 'end_datetime']
     for key in datetime_keys:
         if key in data:
             data[key] = datetime.strptime(data[key], '%d-%m-%Y %H:%M:%S')
@@ -156,15 +156,7 @@ def schedule_maintenance():
 
     data = request.get_json()
     eqp_id = data["equipment_id"]
-
-    if "schedule_datetime" not in data:
-        data["schedule_datetime"] = datetime.now()
-
-    else:
-        data["schedule_datetime"] = datetime.strptime(data["schedule_datetime"], '%d-%m-%Y %H:%M:%S')
-
-    sched_datetime = data["schedule_datetime"]
-    sched_date = sched_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+    sched_datetime = data["schedule_date"]
 
     # THINGS TO ADD
     # UPDATING INVENTORY BASED ON 
@@ -172,8 +164,8 @@ def schedule_maintenance():
     # Validate if there is a document with same equipment_id and schedule date
     maintenance_obj = collection.find_one({
         "equipment_id": eqp_id, 
-        "schedule_datetime": {"$gte": sched_date, "$lt": sched_date + timedelta(days=1)}
-        })
+        "schedule_date": sched_datetime
+    })
 
     # Maintenance exists
     if maintenance_obj:
@@ -204,11 +196,31 @@ def schedule_maintenance():
 
 
 
+@app.route("/maintenance/busy_technicians/<string:scheduled_date>")
+def queryBusyTechnicians(scheduled_date):
+    
+    busy_list = []
 
+    try:
+        maintenance_list = collection.find({
+                "schedule_date": scheduled_date
+            })
+        
+        for maintenance in maintenance_list:
+            busy_list.append(maintenance['technician_id'])
 
+    except:
+        return jsonify({
+            "code": 500,
+            "message": "Error occurred when curating technician list"
+        }), 500
+    
+    return jsonify({
+        "code": 200,
+        "data": busy_list
+    }), 200
 
-
-
+    
 
 
 
