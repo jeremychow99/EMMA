@@ -25,13 +25,13 @@
       </thead>
       <tbody>
         <tr
-          v-for="eq in equipment_arr"
-          :key="eq._id"
+          v-for="eqp in equipment_arr"
+          :key="eqp['_id']"
         >
-          <td>{{ eq._id }}</td>
-          <td>{{ eq.equipment_name }}</td>
-          <td>{{ eq.equipment_location }}</td>
-          <td>{{ eq.equipment_status }}</td>
+          <td>{{ eqp._id }}</td>
+          <td>{{ eqp.equipment_name }}</td>
+          <td>{{ eqp.equipment_location }}</td>
+          <td>{{ eqp.equipment_status }}</td>
         </tr>
       </tbody>
     </v-table>
@@ -56,7 +56,7 @@
           :size="128"
           :width="20">
 
-          <p class="font-weight-black text-h5">{{ eqOperational }}%</p>
+          <p class="font-weight-black text-h5">{{ eqpPercentOperational }}%</p>
         </v-progress-circular>
       </div>
 
@@ -86,15 +86,11 @@
             <tbody>
               <tr>
                 <td class="font-weight-bold text-green-darken-4">Operational</td>
-                <td>{{eqOperational}}</td>
-              </tr>
-              <tr>
-                <td class="font-weight-bold text-amber-darken-1">Warning</td>
-                <td>{{eqWarning}}</td>
+                <td>{{eqpNoMaintain}}</td>
               </tr>
               <tr>
                 <td class="font-weight-bold text-red-darken-4">Down</td>
-                <td>{{eqDown}}</td>
+                <td>{{eqpMaintain}}</td>
               </tr>
             </tbody>
           </v-table>
@@ -113,8 +109,8 @@
 
 <script>
 import navbar from "../components/navbar.vue";
-// import { equipmentURL } from '../../api'
-// import axios from "axios";
+import { equipmentURL } from '../../api'
+import axios from "axios";
 
 export default {
   components: {
@@ -125,81 +121,43 @@ export default {
       return {
         // values to be calculated
         equipment_arr: [],
-        eqNoMaintain: 0,
-        eqMaintain: 0,
+        eqpNoMaintain: 0,
+        eqpMaintain: 0,
+        eqpPercentOperational: 0,
 
         // test values
-        // eqOperational: 87,
-        // eqWarning: 10,
-        // eqDown: 3,
+        eqOperational: 87,
+        eqWarning: 10,
+        eqDown: 3,
 
         showReport: false,
-
-        //  test values
-        // desserts: [
-        //   {
-        //     name: 'Frozen Yogurt',
-        //     calories: 159,
-        //   },
-        //   {
-        //     name: 'Ice cream sandwich',
-        //     calories: 237,
-        //   },
-        //   {
-        //     name: 'Eclair',
-        //     calories: 262,
-        //   },
-        //   {
-        //     name: 'Cupcake',
-        //     calories: 305,
-        //   },
-        //   {
-        //     name: 'Gingerbread',
-        //     calories: 356,
-        //   },
-        //   {
-        //     name: 'Jelly bean',
-        //     calories: 375,
-        //   },
-        //   {
-        //     name: 'Lollipop',
-        //     calories: 392,
-        //   },
-        //   {
-        //     name: 'Honeycomb',
-        //     calories: 408,
-        //   },
-        //   {
-        //     name: 'Donut',
-        //     calories: 452,
-        //   },
-        //   {
-        //     name: 'KitKat',
-        //     calories: 518,
-        //   },
-        // ],
       }
   },
 
-  // have not tested yet!
   methods: {
     updateEquipmentStatus() {
-      for (equipment in this.equipment_arr) {
-        if (equipment.equipment_status == "No maintenance required") {
-          this.eqNoMaintain++
+      // console.log(this.equipment_arr)
+
+      this.equipment_arr.forEach((eqp) => {
+        // console.log(eqp)
+        if (eqp.equipment_status == "Maintenance In Progress") {
+          this.eqpMaintain ++
         }
         else {
-          this.eqMaintain++
+          this.eqpNoMaintain ++
         }
-      }
+      })
+
+      this.eqpPercentOperational = (this.eqpNoMaintain / (this.eqpMaintain + this.eqpNoMaintain)) * 100
+      this.eqpPercentOperational = this.eqpPercentOperational.toFixed(0)
     },
 
   },
 
   async mounted() {
         let eqp_result = await axios.get(equipmentURL)
-
         this.equipment_arr = eqp_result.data.data.equipment
+        this.updateEquipmentStatus()
     }
 
   
