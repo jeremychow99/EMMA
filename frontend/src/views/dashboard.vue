@@ -52,7 +52,7 @@
       <div class="px-5 py-2">
         <v-progress-circular
           color="#3F75FC"
-          :model-value="eqOperational"
+          :model-value="eqpPercentOperational"
           :size="128"
           :width="20">
 
@@ -140,7 +140,7 @@ export default {
 
       this.equipment_arr.forEach((eqp) => {
         // console.log(eqp)
-        if (eqp.equipment_status == "Maintenance In Progress") {
+        if (eqp.equipment_status == "Undergoing Maintenance" || eqp.equipment_status == "Down") {
           this.eqpMaintain ++
         }
         else {
