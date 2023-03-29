@@ -36,6 +36,11 @@ const routes = [
         path: "/dashboard",
         name: "dashboard",
         component: dashboard
+    },
+    {
+        path: "/equipment",
+        name: "equipment",
+        component: equipment
     }
 ]
 
