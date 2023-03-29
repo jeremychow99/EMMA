@@ -40,7 +40,7 @@
                         <p class="text-right font-weight-regular">Technician: </p>
                     </v-col>
                     <v-col cols="7" style="padding:8px 16px">
-                        <p v-if="availableTechnicians.length == 0" style="color: red;">Not Available Technicians</p>
+                        <p v-if="availableTechnicians.length == 0" style="color: red;">No Available Technicians</p>
                         <select v-else id="technician-select" name="technician-select" v-model="selected_technician" :disabled="!maintenance_date" style="width: 200px; border: solid 1px gray; border-radius: 5px;text-align: center;">
                             <option value="" disabled selected>Select your option</option>
                             <option v-for="tech in technician_arr" :value="tech['_id']">{{ tech.name }}</option>
@@ -267,19 +267,37 @@ export default {
             // var formatted_datetime = day + '-' + month + '-' + year + " " + time + ":00"
             // console.log(formatted_datetime)
 
+            let eqpObj = this.equipment_arr.find((eqp) => {return eqp['_id'] == this.equipment_id})
+            let techObj = this.technician_arr.find((tech) => {return tech['_id'] == this.selected_technician})
 
-            if (this.equipment_id != "" && this.maintenance_date != "") {
+            // console.log(eqpObj)
+            // console.log(techObj)
+
+            let tempEqp = {
+                equipment_id: eqpObj['_id'],
+                equipment_name: eqpObj['equipment_name'],
+                equipment_location: eqpObj['equipment_location']
+            }
+
+            let tempTech = {
+                technician_id: techObj['_id'],
+                name: techObj['name'],
+                phone: techObj['phone']
+            }
+
+
+            if (this.equipment_id != "" && this.maintenance_date != "" && this.selected_technician != "") {
                 console.log("Submitted schedule maintenance request")
                 let data = {
-                    equipment_id: this.equipment_id,
+                    equipment: tempEqp,
                     schedule_date: this.maintenance_date,
                     partlist: this.part_list,
-                    technician_id: this.selected_technician
+                    technician: tempTech
                     // Need to include creator_id from sessionStorage
                 }
 
                 // console.log(this.part_list)
-                // console.log(data)
+                console.log(data)
 
 
                 axios.post(`${maintenanceControllerURL}/schedule_maintenance`, data, {
