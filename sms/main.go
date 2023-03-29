@@ -1,9 +1,22 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
+
 	amqp "github.com/rabbitmq/amqp091-go"
 )
+
+type MaintenanceMsg struct {
+	EquipmentID      string `json:"equipment_id"`
+	ScheduleDatetime string `json:"schedule_datetime"`
+	Partlist         []struct {
+		PartName string `json:"PartName"`
+		Qty      int    `json:"Qty"`
+		ID       string `json:"_id"`
+	} `json:"partlist"`
+}
 
 func failOnError(err error, msg string) {
 	if err != nil {
@@ -23,15 +36,15 @@ func main() {
 	//RABBITMQ CONSUMERS
 	maintenanceMsgs, err := ch.Consume(
 		"Maintenance", // queue
-		"",                // consumer
-		true,              // auto ack
-		false,             // exclusive
-		false,             // no local
-		false,             // no wait
-		nil,               // args
+		"",            // consumer
+		true,          // auto ack
+		false,         // exclusive
+		false,         // no local
+		false,         // no wait
+		nil,           // args
 	)
 	failOnError(err, "Failed to register a consumer")
-	
+
 	// execMsgs, err := ch.Consume(
 	// 	"Execute_Maintenance", // queue
 	// 	"",                // consumer
@@ -65,13 +78,19 @@ func main() {
 	// )
 	// failOnError(err, "Failed to register a consumer")
 
-	
 	var forever chan struct{}
 
 	go func() {
 		for d := range maintenanceMsgs {
 			log.Printf(" [x] %s", d.Body)
-			SendMessage()
+			var maintenanceMsg MaintenanceMsg
+
+			err := json.Unmarshal(d.Body, &maintenanceMsg)
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println(maintenanceMsg.EquipmentID)
+			SendMessage(maintenanceMsg.EquipmentID)
 		}
 	}()
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"net/http"
 
 	"gopkg.in/robfig/cron.v2"
@@ -11,11 +12,14 @@ import (
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Auto Maintenance Service is running on port 4001."))
 }
+func init() {
+    os.Setenv("TZ", "Asia/Singapore")
+}
 
 func runCronJobs() {
 	s := cron.New()
 
-	s.AddFunc("@every 1s", checkEquipment)
+	s.AddFunc("@every 10s", checkEquipment)
 
 	s.Start()
     mux := http.NewServeMux()

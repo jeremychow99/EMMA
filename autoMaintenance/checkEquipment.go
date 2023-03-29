@@ -1,12 +1,26 @@
 package main
 
 import (
-	// "bytes"
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
+
+type alias struct{
+	ID                string `json:"equipment_id"`
+	EquipmentLocation string `json:"equipment_location"`
+	EquipmentName     string `json:"equipment_name"`
+	LastMaintained    string `json:"last_maintained"`
+	EquipmentStatus   string `json:"equipment_status"`
+}
+func (e *Equipment) Convert() (alias) {
+    var a alias = alias(*e)
+	return a
+}
+
 
 func contains(s []string, e string) bool {
 	for _, a := range s {
@@ -28,7 +42,7 @@ func getJson(url string, target interface{}) error {
 }
 
 func getBusyTechs(dateStr string) []string {
-	url := "http://localhost:5000/maintenance/busy_technicians/" + dateStr
+	url := "http://host.docker.internal:5000/maintenance/busy_technicians/" + dateStr
 	var resp BusyTechsResp
 	err := getJson(url, &resp)
 	if err != nil {
@@ -37,9 +51,9 @@ func getBusyTechs(dateStr string) []string {
 	return resp.Data
 }
 
-func getTechnicians() []string {
-	technicians := []string{}
-	url := "http://localhost:3001/all"
+func getTechnicians() []User {
+	technicians := []User{}
+	url := "http://host.docker.internal:3001/all"
 	var resp UserResp
 	err := getJson(url, &resp)
 	if err != nil {
@@ -48,35 +62,45 @@ func getTechnicians() []string {
 	// for each technician, get name and append to slice
 	for _, u := range resp.Users {
 		if u.Role == "TECHNICIAN" {
-			technicians = append(technicians, u.ID)
+			technicians = append(technicians, u)
 		}
 	}
 	return technicians
 }
 
-// func getMaintenance() []Maintenance {
-// 	url := "http://localhost:5000/maintenance"
-// 	var resp MaintenanceResp
-// 	err := getJson(url, &resp)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	return resp.Data.Maintenance
-// }
+func getScheduledEqp() []string {
+	scheduledEqp := []string{}
+	url := "http://host.docker.internal:5000/maintenance"
+	var resp MaintenanceResp
+	err := getJson(url, &resp)
+	if err != nil {
+		fmt.Println(err)
+	}
+	maintenances := resp.Data.Maintenance
+	for i := range maintenances {
+		scheduledEqp = append(scheduledEqp, maintenances[i].Equipment.EquipmentID)
+	}
+	return scheduledEqp
+}
 
 func checkEquipment() {
-	url := "http://localhost:4999/equipment"
+	fmt.Println(time.Now())
+	url := "http://host.docker.internal:4999/equipment"
 	var resp EqpResp
 	err := getJson(url, &resp)
 	if err != nil {
 		fmt.Println(err)
 	}
-	equipmentList := resp.Data.Equipment
+	equipmentList := resp.Data.EquipmentData
 	technicians := getTechnicians()
+
 	for _, e := range equipmentList {
 		status := false
+		scheduledEqp := getScheduledEqp()
 
-		if e.EquipmentStatus == "Down" {
+		if e.EquipmentStatus == "Down" && !contains(scheduledEqp, e.ID) {
+			fmt.Println(scheduledEqp)
+			fmt.Println(e.ID)
 			// add a day to current date.
 			date := time.Now().AddDate(0, 0, 1)
 			// while status == false, meaning havent schedule maintenance
@@ -86,22 +110,42 @@ func checkEquipment() {
 				busyTechs := getBusyTechs(dateStr)
 				// remove technician from available list
 				for i := range availList {
-					// HARDCODE VALUE for now, supposed to be mtn.assignedTechnician
-					if contains(busyTechs, availList[i]){
-						// remove value
-						fmt.Println("hello")
+					if contains(busyTechs, availList[i].ID) {
 						availList = append(availList[:i], availList[i+1:]...)
 					}
 				}
 
-				if len(availList) != 0 {
-					// invoke maintenance controller ot schedule maintenance
+				if len(availList) > 0 {
+					// invoke maintenance controller to schedule maintenance
+					testarr := [] string{}
+					e := e.Convert()
+					var st SubmitTechnician
+					st.ID = availList[0].ID
+					st.Name = availList[0].Name
+					st.Phone = availList[0].Phone
+					details := map[string]interface{}{"equipment": e, "schedule_date": dateStr, "partlist": testarr, "technician": st}
+					jsonData, err := json.Marshal(details)
+					fmt.Println(details)
+					if err != nil {
+						fmt.Println(err)
+					}
+
+					resp, err := http.Post("http://host.docker.internal:8080/schedule_maintenance",
+						"application/json",
+						bytes.NewBuffer(jsonData))
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					var res map[string]interface{}
+					json.NewDecoder(resp.Body).Decode(&res)
+					fmt.Println(res["json"])
+
 					status = true
-					fmt.Println("Scheduled for " + dateStr)
 				} else {
 
 					date = date.AddDate(0, 0, 1)
-					fmt.Println("next day")
+
 				}
 			}
 
@@ -110,18 +154,3 @@ func checkEquipment() {
 	}
 }
 
-// TO-DO
-
-// var jsonStr = []byte(`{"title":"Buy cheese and bread for breakfast."}`)
-// req, err := http.NewRequest("POST", "http://localhost:8080/schedule_maintenance", bytes.NewBuffer(jsonStr))
-// if err != nil {
-// 	panic(err)
-// }
-// req.Header.Set("Content-Type", "application/json")
-
-// client := &http.Client{}
-// resp, err := client.Do(req)
-// if err != nil {
-// 	panic(err)
-// }
-// defer resp.Body.Close()
