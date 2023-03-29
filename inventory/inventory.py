@@ -3,6 +3,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from bson import ObjectId
+
+import json
 import os
 
 
@@ -118,6 +120,22 @@ def reserve_parts():
                     "procurement_part_list": procurement_part_list
                 }
             }), 200
+
+
+
+# def receiveReturnRequest():
+
+#     queue_name = 'Return_Parts'
+
+#     channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+#     channel.starting_consuming()
+
+#     pass
+
+
+# def callback(channel, method, properties, body):
+#     return_parts(json.loads(body))
+
 
 #RETURN PARTS TO DB
 @app.route("/inventory/return", methods = ['PUT'])

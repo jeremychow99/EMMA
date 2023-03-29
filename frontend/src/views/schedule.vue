@@ -273,7 +273,8 @@ export default {
                 let data = {
                     equipment_id: this.equipment_id,
                     schedule_date: this.maintenance_date,
-                    partlist: this.part_list
+                    partlist: this.part_list,
+                    technician_id: this.selected_technician
                     // Need to include creator_id from sessionStorage
                 }
 
@@ -294,6 +295,7 @@ export default {
                     this.equipment_id = ""
                     this.part_list = []
                     this.maintenance_date= ""
+                    this.selected_technician= ""
 
                     this.$router.go()
                 }).catch(error => {
