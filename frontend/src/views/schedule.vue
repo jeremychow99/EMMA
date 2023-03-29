@@ -54,9 +54,9 @@
         </v-row>
 
         <!-- Testing Purpose -->
-        <div>
+        <!-- <div>
             {{ selected_technician }}
-        </div>
+        </div> -->
         
 
         <v-tabs class="mx-auto mt-3" align-tabs="center" v-model="tab">
