@@ -101,6 +101,32 @@ def query_maintenance(maintenance_id):
     ), 404
 
 
+# Retrieve all maintenance record assigned to technician
+@app.route("/maintenance/technician/<string:technician_id>")
+def query_tech_maintenance(technician_id):
+
+    maintenance_list = []
+
+    # Iterate through all documents in collection via Cursor instance
+    for maintenance in collection.find({"technician.technician_id": technician_id}):
+        maintenance = json(maintenance)
+        maintenance_list.append(maintenance)
+
+    # Maintenance Record found
+    if len(maintenance_list):
+        return jsonify({
+            "code": 200,
+            "data": maintenance_list
+        }), 200
+    
+    return jsonify(
+        {
+            "code": 404,
+            "message": "No maintenance record found."
+        }
+    ), 404
+
+
 
 # Update single maintenance record
 @app.route("/maintenance/<string:maintenance_id>", methods=['PUT'])
@@ -155,17 +181,21 @@ def update_maintenance(maintenance_id):
 def schedule_maintenance():
 
     data = request.get_json()
-    eqp_id = data["equipment_id"]
+    eqp_id = data["equipment"]["equipment_id"]
     sched_datetime = data["schedule_date"]
 
-    # THINGS TO ADD
-    # UPDATING INVENTORY BASED ON 
+    # print(eqp_id)
+    
+    # Add Status of maintenance to Scheduled
+    data["status"] = "SCHEDULED"
 
     # Validate if there is a document with same equipment_id and schedule date
     maintenance_obj = collection.find_one({
-        "equipment_id": eqp_id, 
+        "equipment.equipment_id": eqp_id, 
         "schedule_date": sched_datetime
     })
+
+    # print(maintenance_obj)
 
     # Maintenance exists
     if maintenance_obj:
@@ -207,7 +237,7 @@ def queryBusyTechnicians(scheduled_date):
             })
         
         for maintenance in maintenance_list:
-            busy_list.append(maintenance['technician_id'])
+            busy_list.append(maintenance['technician']['technician_id'])
 
     except:
         return jsonify({
