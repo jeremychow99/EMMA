@@ -43,7 +43,7 @@
                         <p v-if="availableTechnicians.length == 0" style="color: red;">Not Available Technicians</p>
                         <select v-else id="technician-select" name="technician-select" v-model="selected_technician" :disabled="!maintenance_date" style="width: 200px; border: solid 1px gray; border-radius: 5px;text-align: center;">
                             <option value="" disabled selected>Select your option</option>
-                            <option v-for="tech in technician_arr">{{ tech.name }}</option>
+                            <option v-for="tech in technician_arr" :value="tech['_id']">{{ tech.name }}</option>
                         </select>
                     </v-col>
                 </v-row>
@@ -54,9 +54,9 @@
         </v-row>
 
         <!-- Testing Purpose -->
-        <!-- <div>
-            {{ technician_arr }}
-        </div> -->
+        <div>
+            {{ selected_technician }}
+        </div>
         
 
         <v-tabs class="mx-auto mt-3" align-tabs="center" v-model="tab">
