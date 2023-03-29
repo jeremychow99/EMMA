@@ -6,6 +6,7 @@ import schedule from "../views/schedule.vue";
 import startMaintenance from "../views/startMaintenance.vue";
 import endMaintenance from "../views/endMaintenance.vue";
 import dashboard from "../views/dashboard.vue";
+
 const routes = [
     {
         path: "/login",
@@ -41,7 +42,7 @@ const routes = [
         path: "/equipment",
         name: "equipment",
         component: equipment
-    }
+    },
 ]
 
 

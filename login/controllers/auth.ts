@@ -6,7 +6,7 @@ import ResourceAlreadyExistsError from '../errors/alreadyExists';
 
 const register = async (req: Request, res: Response) => {
   const { name, password } = req.body
-  if (name.length < 6 || password.length < 6){
+  if (name.length < 6 || password.length < 6) {
     throw new Error("Both Name and Password must be at least 6 characters long")
   }
 
@@ -18,7 +18,7 @@ const register = async (req: Request, res: Response) => {
 
   const user = await User.create({ ...req.body })
   const token = user.createJWT()
-  res.status(StatusCodes.CREATED).json({ user: { name: user.name, role: user.role, phonenumber: user.phone, email: user.email }, token })
+  res.status(StatusCodes.CREATED).json({ user: { userId: user._id, name: user.name, role: user.role, phonenumber: user.phone, email: user.email }, token })
 
 
 }
@@ -41,7 +41,7 @@ const login = async (req: Request, res: Response) => {
     throw new UnauthenticatedError('Invalid Credentials')
   }
   const token = user.createJWT()
-  res.status(StatusCodes.OK).json({ user: { name: user.name }, token })
+  res.status(StatusCodes.OK).json({ user: { userId: user._id, name: user.name, role: user.role, phonenumber: user.phone, email: user.email }, token })
 }
 
 export {
