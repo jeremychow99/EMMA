@@ -109,9 +109,13 @@ services:
     ports:
     - "5001:5001"
     container_name: inventory
-    
-
-
+  
+  automaintenance:
+    build:
+      context: ./autoMaintenance
+      dockerfile: Dockerfile
+    restart: on-failure
+    container_name: automaintenance
 
 #######################################
   # Postgres: The database used by Kong

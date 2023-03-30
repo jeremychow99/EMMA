@@ -29,7 +29,7 @@ def scheduleMaintenance():
 
     data = request.get_json()
     print(data)
-    eqp_id = data["equipment_id"]
+    eqp_id = data["equipment"]["equipment_id"]
     schedule_date = data["schedule_date"]
     requested_parts = data["partlist"]
 
