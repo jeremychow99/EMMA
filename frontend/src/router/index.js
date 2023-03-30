@@ -7,7 +7,8 @@ import startMaintenance from "../views/startMaintenance.vue";
 import endMaintenance from "../views/endMaintenance.vue";
 import dashboard from "../views/dashboard.vue";
 import equipment from "../views/equipment.vue";
-import techDashboard from "../views/maintenanceDashboard.vue"
+import techDashboard from "../views/maintenanceDashboard.vue";
+import inventory from "../views/inventory.vue";
 
 const routes = [
     {
@@ -50,6 +51,11 @@ const routes = [
         name: "techDashboard",
         component: techDashboard
     },
+    {
+        path: "/inventory",
+        name: "inventory",
+        component: inventory
+    }
 ]
 
 
