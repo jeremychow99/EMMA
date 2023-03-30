@@ -144,7 +144,7 @@
               :key="mtn['_id']"
             >
               <td>{{ mtn._id }}</td>
-              <td>{{ mtn.equipment_id }}</td>
+              <td>{{ mtn.equipment.equipment_id }}</td>
               <td>{{ mtn.schedule_date }}</td>
               <td>{{ mtn.status }}</td>
               <!-- <td>{{ mtn.technician_id }}</td> -->
@@ -155,6 +155,10 @@
       </v-col-9>
     </v-row>
   </v-container>
+
+  <v-container>
+    <BarChart/>
+  </v-container>
   
 </template>
 
@@ -164,10 +168,12 @@
 import navbar from "../components/navbar.vue";
 import { equipmentURL, maintenanceURL } from '../../api'
 import axios from "axios";
+import { Bar } from 'vue-chartjs';
 
 export default {
   components: {
-      navbar
+      navbar,
+      BarChart
   },
 
   data() {
