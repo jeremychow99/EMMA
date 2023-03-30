@@ -30,6 +30,7 @@ def scheduleMaintenance():
     data = request.get_json()
     print(data)
     eqp_id = data["equipment"]["equipment_id"]
+    eqp_name = data["equipment"]["equipment_name"]
     schedule_date = data["schedule_date"]
     requested_parts = data["partlist"]
 
@@ -71,7 +72,7 @@ def scheduleMaintenance():
             print("Completed operations")
             return jsonify({
                 "code": maintenance_code,
-                "message": f"Maintenance for {eqp_id} has been scheduled on {schedule_date}"
+                "message": f"Maintenance for {eqp_name} has been scheduled on {schedule_date}"
             }), maintenance_code
         
         # Maintenance record already exist
