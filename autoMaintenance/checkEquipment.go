@@ -9,18 +9,18 @@ import (
 	"time"
 )
 
-type alias struct{
+type alias struct {
 	ID                string `json:"equipment_id"`
 	EquipmentLocation string `json:"equipment_location"`
 	EquipmentName     string `json:"equipment_name"`
 	LastMaintained    string `json:"last_maintained"`
 	EquipmentStatus   string `json:"equipment_status"`
 }
-func (e *Equipment) Convert() (alias) {
-    var a alias = alias(*e)
+
+func (e *Equipment) Convert() alias {
+	var a alias = alias(*e)
 	return a
 }
-
 
 func contains(s []string, e string) bool {
 	for _, a := range s {
@@ -68,8 +68,9 @@ func getTechnicians() []User {
 	return technicians
 }
 
-func getScheduledEqp() []string {
+func getScheduledEqp() (int, []Maintenance, []string) {
 	scheduledEqp := []string{}
+	count := 0
 	url := "http://host.docker.internal:5000/maintenance"
 	var resp MaintenanceResp
 	err := getJson(url, &resp)
@@ -78,9 +79,12 @@ func getScheduledEqp() []string {
 	}
 	maintenances := resp.Data.Maintenance
 	for i := range maintenances {
+		if maintenances[i].Status != "COMPLETE - SUCCESSFUL" && maintenances[i].Status != "COMPLETE - UNSUCCESSFUL"{
 		scheduledEqp = append(scheduledEqp, maintenances[i].Equipment.EquipmentID)
+		}
+		count += 1
 	}
-	return scheduledEqp
+	return count, maintenances, scheduledEqp
 }
 
 func checkEquipment() {
@@ -96,61 +100,58 @@ func checkEquipment() {
 
 	for _, e := range equipmentList {
 		status := false
-		scheduledEqp := getScheduledEqp()
+		count, maintenances, scheduledEqp := getScheduledEqp()
+			// if (e.ID == m.Equipment.EquipmentID && (m.Status == "COMPLETE - SUCCESSFUL" || m.Status == "COMPLETE - UNSUCCESSFUL") && e.EquipmentStatus == "Down" && !contains(scheduledEqp, e.ID) && count > 0) || (e.EquipmentStatus == "Down" && !contains(scheduledEqp, e.ID) && count > 0)
+			if  (e.EquipmentStatus == "Down" && !contains(scheduledEqp, e.ID) && count > 0) {
+				// add a day to current date.
+				date := time.Now().AddDate(0, 0, 1)
+				// while status == false, meaning havent schedule maintenance
+				for !status {
+					dateStr := date.Format("2006-01-02")
+					availList := technicians
+					busyTechs := getBusyTechs(dateStr)
+					// remove technician from available list
+					for i := range availList {
+						if contains(busyTechs, availList[i].ID) {
+							availList = append(availList[:i], availList[i+1:]...)
+						}
+					}
 
-		if e.EquipmentStatus == "Down" && !contains(scheduledEqp, e.ID) {
-			fmt.Println(scheduledEqp)
-			fmt.Println(e.ID)
-			// add a day to current date.
-			date := time.Now().AddDate(0, 0, 1)
-			// while status == false, meaning havent schedule maintenance
-			for !status {
-				dateStr := date.Format("2006-01-02")
-				availList := technicians
-				busyTechs := getBusyTechs(dateStr)
-				// remove technician from available list
-				for i := range availList {
-					if contains(busyTechs, availList[i].ID) {
-						availList = append(availList[:i], availList[i+1:]...)
+					if len(availList) > 0 {
+						// invoke maintenance controller to schedule maintenance
+						testarr := []string{}
+						e := e.Convert()
+						var st SubmitTechnician
+						st.ID, st.Name, st.Phone = availList[0].ID, availList[0].Name, availList[0].Phone
+						details := map[string]interface{}{"equipment": e, "schedule_date": dateStr, "partlist": testarr, "technician": st}
+						jsonData, err := json.Marshal(details)
+						fmt.Println(details)
+						if err != nil {
+							fmt.Println(err)
+						}
+
+						resp, err := http.Post("http://host.docker.internal:8080/schedule_maintenance",
+							"application/json",
+							bytes.NewBuffer(jsonData))
+						if err != nil {
+							log.Fatal(err)
+						}
+
+						var res map[string]interface{}
+						json.NewDecoder(resp.Body).Decode(&res)
+						fmt.Println(res["json"])
+
+						status = true
+					} else {
+
+						date = date.AddDate(0, 0, 1)
+						fmt.Println(maintenances)
+
 					}
 				}
 
-				if len(availList) > 0 {
-					// invoke maintenance controller to schedule maintenance
-					testarr := [] string{}
-					e := e.Convert()
-					var st SubmitTechnician
-					st.ID = availList[0].ID
-					st.Name = availList[0].Name
-					st.Phone = availList[0].Phone
-					details := map[string]interface{}{"equipment": e, "schedule_date": dateStr, "partlist": testarr, "technician": st}
-					jsonData, err := json.Marshal(details)
-					fmt.Println(details)
-					if err != nil {
-						fmt.Println(err)
-					}
-
-					resp, err := http.Post("http://host.docker.internal:8080/schedule_maintenance",
-						"application/json",
-						bytes.NewBuffer(jsonData))
-					if err != nil {
-						log.Fatal(err)
-					}
-
-					var res map[string]interface{}
-					json.NewDecoder(resp.Body).Decode(&res)
-					fmt.Println(res["json"])
-
-					status = true
-				} else {
-
-					date = date.AddDate(0, 0, 1)
-
-				}
 			}
 
 		}
-
 	}
-}
 

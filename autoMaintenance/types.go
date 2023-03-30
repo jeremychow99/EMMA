@@ -40,28 +40,6 @@ type SubmitTechnician struct {
 	Phone int    `json:"phone"`
 }
 
-////
-// type Partlist struct {
-// 	PartName    string `json:"PartName"`
-// 	ReservedQty int    `json:"ReservedQty"`
-// 	ID          string `json:"_id"`
-// }
-
-// type Maintenance struct {
-// 	ID               string     `json:"_id"`
-// 	EquipmentID      string     `json:"equipment_id"`
-// 	Partlist         []Partlist `json:"partlist"`
-// 	ScheduleDatetime string     `json:"schedule_datetime"`
-// 	Description      string     `json:"description,omitempty"`
-// 	EndDatetime      string     `json:"end_datetime,omitempty"`
-// 	StartDatetime    string     `json:"start_datetime,omitempty"`
-// 	Status           string     `json:"status,omitempty"`
-// }
-
-// type MaintenanceData struct {
-// 	Maintenance []Maintenance `json:"maintenance"`
-// }
-
 type EqpResp struct {
 	Code int `json:"code"`
 	Data struct {
