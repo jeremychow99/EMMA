@@ -3,7 +3,7 @@ from os import environ
 
 # hostname = environ.get('rabbit_host') or 'localhost'
 # port = environ.get('rabbit_port') or 5672
-hostname = 'localhost'
+hostname = 'rabbitmq'
 port = 5672
 
 
@@ -44,10 +44,17 @@ channel.queue_bind(exchange=exchangename, queue=queue_name, routing_key=routing_
 
 
 ############   Maintenance queue    #############
-queue_name = 'Maintenance' 
+queue_name = 'Maintenance_SMS' 
 channel.queue_declare(queue=queue_name, durable=True)
 
-routing_key = '#.maintenance.#' 
+routing_key = 'schedule.maintenance' 
+
+channel.queue_bind(exchange=exchangename, queue=queue_name, routing_key=routing_key) 
+
+queue_name = 'Maintenance_Email' 
+channel.queue_declare(queue=queue_name, durable=True)
+
+routing_key = 'schedule.maintenance' 
 
 channel.queue_bind(exchange=exchangename, queue=queue_name, routing_key=routing_key) 
 

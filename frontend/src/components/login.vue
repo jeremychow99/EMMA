@@ -80,8 +80,10 @@ export default {
           if (response.status == 200) {
             localStorage.userId = response.data.user.userId
             localStorage.token = response.data.token;
+            localStorage.userId = response.data.user.role
             console.log(localStorage.token);
             console.log(localStorage.userId);
+            console.log(localStorage.role)
             this.$router.push({ name: "main" });
           }
         })

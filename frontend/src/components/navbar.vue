@@ -3,7 +3,7 @@
 <v-toolbar>
         <v-toolbar-title><h1>EMMA</h1></v-toolbar-title>
         <v-toolbar-items>
-          <v-btn>Home</v-btn>
+          <v-btn>Dashboard</v-btn>
           <v-btn>Maintenance</v-btn>
           <v-btn>Inventory</v-btn>
           <v-btn @click="logout">Logout</v-btn>
@@ -15,27 +15,32 @@
 <script>
 export default {
     data () {
-    return {
-      nav: [
-        {
-          text: 'Home',
-        },
-        {
-          text: 'Maintenance',
-        },
-        {
-          text: 'Inventory',
-        },
-        {
-          text: 'Logout',
-        }
-      ]
-    }
+      return {
+        nav: [
+          {
+            text: 'Home',
+          },
+          {
+            text: 'Maintenance',
+          },
+          {
+            text: 'Inventory',
+          },
+          {
+            text: 'Logout',
+          }
+        ]
+      }
   },
   methods: {
     logout () {
       localStorage.clear()
       this.$router.push({name: 'login'})
+    }
+  },
+  computed: {
+    isAdmin() {
+      return sessionStorage.getItem('role') === "ADMIN"
     }
   }
   // TODO: Implement Logout button

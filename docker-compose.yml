@@ -109,7 +109,7 @@ services:
     depends_on:
       - rabbitmq
     ports:
-    - "5001:5001"
+      - "5001:5001"
     # environment:
     #   rabbit_host: rabbitmq
     #   rabbit_port: 5672
@@ -121,6 +121,18 @@ services:
   #     dockerfile: Dockerfile
   #   restart: on-failure
   #   container_name: automaintenance
+
+  maintenance_controller:
+    build:
+      context: ./maintenanceController
+      dockerfile: Dockerfile
+    restart: always
+    depends_on: 
+      - rabbitmq
+    ports:
+      - "8080:8080"
+    container_name: maintenance_controller
+
 
 #######################################
   # Postgres: The database used by Kong
