@@ -45,10 +45,10 @@
   </v-container>
 
   <!-- 2nd Row of Content -->
-  <v-container>
+  <v-container fluid>
     <v-divider class="mb-5" :thickness="3"></v-divider>
     <v-row dense>
-      <v-col-3>
+      <v-col cols="3">
         <!-- Equipment Status Card -->
         <v-card
           title="Equipment Status"
@@ -64,7 +64,8 @@
               color="#3F75FC"
               :model-value="eqpPercentOperational"
               :size="128"
-              :width="20">
+              :width="20"
+              class="ml-16">
 
               <p class="font-weight-black text-h5">{{ eqpPercentOperational }}%</p>
             </v-progress-circular>
@@ -109,9 +110,9 @@
           </v-expand-transition>
         </v-card>
 
-      </v-col-3>
+      </v-col>
 
-      <v-col-9>
+      <v-col cols="9">
       <!-- Maintenance Table -->
       <div v-if="upcomingExists">
         <div class="text-h6 mx-3">Upcoming Maintenance</div>
@@ -144,7 +145,7 @@
                   :key="mtn['_id']"
                 >
                   <td>{{ mtn._id }}</td>
-                  <td>{{ mtn.equipment.equipment_id }}</td>
+                  <td>{{ mtn.equipment.equipment_name }}</td>
                   <td>{{ mtn.schedule_date }}</td>
                   <td>{{ mtn.status }}</td>
                   <!-- <td>{{ mtn.technician_id }}</td> -->
@@ -156,7 +157,7 @@
         <div v-else>
           <p class="text-h4 font-weight-bold text-red-darken-3 px-10 py-16">No Upcoming Maintenance!</p>
         </div>
-      </v-col-9>
+      </v-col>
     </v-row>
   </v-container>
 
