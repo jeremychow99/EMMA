@@ -27,7 +27,7 @@ const routes = [
         component: schedule
     },
     {
-        path: "/startMaintenance",
+        path: "/startMaintenance/:id",
         name: "startMaintenance",
         component: startMaintenance
     },
