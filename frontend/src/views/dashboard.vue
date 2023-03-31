@@ -238,9 +238,13 @@ export default {
     // Converts maintenance date format from DB to Time thing
     convertMtnDate(mtn_date) {
       var mtnDate = mtn_date.replace(/-/g, '/')
-      var mtnDate = mtnDate.slice(0,-3)
-      var changedDate = mtnDate.replace(/(..)\/(..)\/(....) (..):(..)/, '$3-$2-$1 $4:$5')
-      var mtnTime = new Date(changedDate)
+      // var mtnDate = mtnDate.slice(0,-3)
+      // console.log(mtnDate)
+      // var changedDate = mtnDate.replace(/(..)\/(..)\/(....) (..):(..)/, '$3-$2-$1 $4:$5')
+      // var mtnTime = new Date(changedDate)
+      var mtnDate = new Date(mtnDate)
+      var mtnTime = mtnDate.getTime()
+      // console.log(mtnTime)
       return mtnTime
     },
 
@@ -301,12 +305,19 @@ export default {
     // Get time for start and end of each week
     var currentStartTime = currentWeek.GetFirstDayOfWeek().getTime()
     var currentEndTime = currentWeek.GetLastDayOfWeek().getTime()
+    // console.log(`current week start time: ${currentStartTime}`)
+    // console.log(`current week end time: ${currentEndTime}`)
 
     var lastStartTime = lastWeek.GetFirstDayOfWeek().getTime()
     var lastEndTime = lastWeek.GetLastDayOfWeek().getTime()
+    // console.log(`last week start time: ${lastStartTime}`)
+    // console.log(`last week end time: ${lastEndTime}`)
 
     var nextStartTime = nextWeek.GetFirstDayOfWeek().getTime()
     var nextEndTime = nextWeek.GetLastDayOfWeek().getTime()
+    // console.log(`next week start time: ${nextStartTime}`)
+    // console.log(`next week end time: ${nextEndTime}`)
+
     // console.log(currentWeek)
     // console.log(currentWeek.GetFirstDayOfWeek())
     // console.log(currentWeek.GetLastDayOfWeek())
@@ -322,14 +333,20 @@ export default {
     this.maintenance_arr.forEach((mtn) => {
       if (mtn.schedule_date)  {
         var mtnTime = this.convertMtnDate(mtn.schedule_date)
-        if (lastStartTime <= mtnTime <= lastEndTime) {
+        // console.log(`maintenance time: ${mtnTime}`)
+        if (lastStartTime <= mtnTime && mtnTime <= lastEndTime) {
           numMtnLast++
+          // console.log('Last')
         }
-        else if (currentStartTime <= mtnTime <= currentEndTime) {
+        else if (currentStartTime <= mtnTime && mtnTime <= currentEndTime) {
           numMtnCurrent++
+          // console.log('Current')
+
         }
-        else if (nextStartTime <= mtnTime <= nextEndTime) {
-          numMtnLast++
+        else if (nextStartTime <= mtnTime && mtnTime <= nextEndTime) {
+          numMtnNext++
+          // console.log('Next')
+
         }
       }
     })
