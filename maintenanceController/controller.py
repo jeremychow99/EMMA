@@ -227,7 +227,7 @@ def endMaintenance(maintenance_id):
     3. Send out Notification (Email + SMS)
     '''
     data = request.get_json()
-    eqp_id = data["equipment_id"]
+    eqp_id = data["equipment"]["equipment_id"]
     end_datetime = data["end_datetime"]
     maintenance_status = data["maintenance_status"]
     description = data["description"]
