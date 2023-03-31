@@ -1,21 +1,22 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-# import os
-# from dotenv import load_dotenv
 import requests
 import amqp_setup
 import pika
 import json
 
-import time
 
 app = Flask(__name__)
 CORS(app)
 
 ################# API Routes ######################
-maintenanceAPI = 'http://127.0.0.1:5000/maintenance'
-equipmentAPI = 'http://127.0.0.1:4999/equipment'
-inventoryAPI = 'http://127.0.0.1:5001/inventory'
+# maintenanceAPI = 'http://127.0.0.1:5000/maintenance'
+# equipmentAPI = 'http://127.0.0.1:4999/equipment'
+# inventoryAPI = 'http://127.0.0.1:5001/inventory'
+
+maintenanceAPI = 'http://host.docker.internal:5000/maintenance'
+equipmentAPI = 'http://host.docker.internal:4999/equipment'
+inventoryAPI = 'http://host.docker.internal:5001/inventory'
 
 
 
@@ -360,5 +361,4 @@ def executeMaintenance(maintenanceData, start):
 
 
 if __name__ == '__main__':
-    # time.sleep(30)
     app.run(host='0.0.0.0', port=8080, debug=True)

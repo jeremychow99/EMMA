@@ -4,7 +4,6 @@ import login from "../components/login.vue";
 import main from "../views/main.vue"
 import schedule from "../views/schedule.vue";
 import startMaintenance from "../views/startMaintenance.vue";
-import endMaintenance from "../views/endMaintenance.vue";
 import dashboard from "../views/dashboard.vue";
 import equipment from "../views/equipment.vue";
 import techDashboard from "../views/maintenanceDashboard.vue";
@@ -27,14 +26,9 @@ const routes = [
         component: schedule
     },
     {
-        path: "/startMaintenance",
+        path: "/startMaintenance/:id",
         name: "startMaintenance",
         component: startMaintenance
-    },
-    {
-        path: "/endMaintenance",
-        name: "endMaintenance",
-        component: endMaintenance
     },
     {
         path: "/dashboard",
