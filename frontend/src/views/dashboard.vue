@@ -126,7 +126,7 @@
                     Maintenance ID
                   </th>
                   <th class="text-left">
-                    Equipment ID
+                    Equipment Name
                   </th>
                   <th class="text-left">
                     Scheduled Date
