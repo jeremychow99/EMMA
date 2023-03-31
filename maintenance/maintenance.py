@@ -127,6 +127,30 @@ def query_tech_maintenance(technician_id):
     ), 404
 
 
+@app.route("/maintenance/equipment/<string:equipment_id>")
+def query_eqp_maintenance(equipment_id):
+
+    maintenance_list = []
+
+    # Iterate through all documents in collection via Cursor instance
+    for maintenance in collection.find({"equipment.equipment_id": equipment_id}):
+        maintenance = json(maintenance)
+        maintenance_list.append(maintenance)
+
+    # Maintenance Record found
+    if len(maintenance_list):
+        return jsonify({
+            "code": 200,
+            "data": maintenance_list
+        }), 200
+    
+    return jsonify(
+        {
+            "code": 404,
+            "message": "No maintenance record found."
+        }
+    ), 404    
+
 
 # Update single maintenance record
 @app.route("/maintenance/<string:maintenance_id>", methods=['PUT'])
