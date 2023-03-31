@@ -70,7 +70,7 @@ def scheduleMaintenance():
                 body=json.dumps(data), 
                 properties=pika.BasicProperties(delivery_mode = 2)
             )
-
+ 
             print("Completed operations")
             return jsonify({
                 "code": maintenance_code,

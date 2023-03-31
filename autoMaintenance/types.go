@@ -72,3 +72,26 @@ type BusyTechsResp struct {
 	Code int      `json:"code"`
 	Data []string `json:"data"`
 }
+
+// type eqpResp struct {
+// 	Code int `json:"code"`
+// 	Data struct {
+// 		ID                string `json:"_id"`
+// 		EquipmentLocation string `json:"equipment_location"`
+// 		EquipmentName     string `json:"equipment_name"`
+// 		EquipmentStatus   string `json:"equipment_status"`
+// 		LastMaintained    string `json:"last_maintained"`
+// 	} `json:"data"`
+// }
+
+type eqpResp struct {
+	Code int  `json:"code"`
+	Data Eqp `json:"data"`
+}
+type Eqp struct {
+	ID                string `json:"_id"`
+	EquipmentLocation string `json:"equipment_location"`
+	EquipmentName     string `json:"equipment_name"`
+	LastMaintained    string `json:"last_maintained"`
+	EquipmentStatus   string `json:"equipment_status"`
+}
