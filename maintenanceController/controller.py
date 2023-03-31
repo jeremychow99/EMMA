@@ -105,9 +105,8 @@ def startMaintenance(maintenance_id):
     3. Send out Notification (Email + SMS)
     '''
     data = request.get_json()
-    eqp_id = data["equipment_id"]
-    # TechID
-    eqp_status = "Maintenance In Progress"
+    eqp_id = data["equipment"]["equipment_id"]
+    eqp_status = "Undergoing Maintenance"
     start_datetime = data["start_datetime"]
     maintenance_status = "STARTED"
 
@@ -207,6 +206,7 @@ def requestParts(maintenance_id):
         else:
             
             # Return reserved parts (RabbitMQ)
+            print("Error Occurred: Returning Parts")
             returnParts(reserved_list)
 
             return jsonify({

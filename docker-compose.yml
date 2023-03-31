@@ -105,17 +105,22 @@ services:
     build:
       context: ./inventory
       dockerfile: Dockerfile
-    restart: on-failure
+    restart: always
+    depends_on:
+      - rabbitmq
     ports:
     - "5001:5001"
+    # environment:
+    #   rabbit_host: rabbitmq
+    #   rabbit_port: 5672
     container_name: inventory
   
-  automaintenance:
-    build:
-      context: ./autoMaintenance
-      dockerfile: Dockerfile
-    restart: on-failure
-    container_name: automaintenance
+  # automaintenance:
+  #   build:
+  #     context: ./autoMaintenance
+  #     dockerfile: Dockerfile
+  #   restart: on-failure
+  #   container_name: automaintenance
 
 #######################################
   # Postgres: The database used by Kong

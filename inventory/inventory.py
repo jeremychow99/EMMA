@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from bson import ObjectId
-import pika
+import amqp_setup
 
 import json
 import os
@@ -126,32 +126,30 @@ def reserve_parts():
 
 def receiveReturnRequest():
 
-    hostname = "localhost"
-    port = "5672"
-
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host=hostname, port=port, heartbeat=3600, blocked_connection_timeout=3600))
-    channel = connection.channel()
+    print("Consuming Part Return Messages")
+    amqp_setup.check_setup()
 
     queue_name = 'Return_Parts'
 
-    channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
-    channel.starting_consuming()
+    amqp_setup.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+    amqp_setup.channel.start_consuming()
 
 
 def callback(channel, method, properties, body):
 
     print(json.loads(body))
-    # return_parts(json.loads(body))
+    return_parts(json.loads(body))
 
 
 #RETURN PARTS TO DB
-@app.route("/inventory/return", methods = ['PUT'])
-def return_parts():
+# @app.route("/inventory/return", methods = ['PUT'])
+def return_parts(parts):
     # Get parts and quantities from JSON request body
-    data = request.get_json()
-    parts = data['partList']
+    # data = request.get_json()
+    # parts = data['partList']
 
     #returned parts list to return
+    print("Returning Parts ", parts)
     returned_part_list = []
     error_part_list = []
 
@@ -197,8 +195,9 @@ def return_parts():
     }), 200
  
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
     receiveReturnRequest()
+    app.run(host='0.0.0.0', port=5001, debug=True)
+    
 
 
 
