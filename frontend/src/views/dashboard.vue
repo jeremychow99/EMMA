@@ -118,7 +118,7 @@
         <div class="text-h6 mx-3">Upcoming Maintenance</div>
             <v-table
             fixed-header
-            height="300px"
+            height="320px"
             >
               <thead>
                 <tr>
