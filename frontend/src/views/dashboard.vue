@@ -173,7 +173,7 @@ import { Bar } from 'vue-chartjs';
 export default {
   components: {
       navbar,
-      BarChart
+      Bar
   },
 
   data() {
