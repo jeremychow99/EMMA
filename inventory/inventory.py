@@ -4,6 +4,8 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from bson import ObjectId
 import amqp_setup
+import time
+
 
 import json
 import os
@@ -170,6 +172,8 @@ def return_parts(parts):
                 "Qty": req_quantity,
                 "_id": str(req_part_id)
                 })
+            
+            print("Successfully return following part: ", req_partname)
 
         except:
             error_part_list.append(f'{req_part_id}')
@@ -195,6 +199,7 @@ def return_parts(parts):
     }), 200
  
 if __name__ == '__main__':
+    # time.sleep(30)
     receiveReturnRequest()
     app.run(host='0.0.0.0', port=5001, debug=True)
     
