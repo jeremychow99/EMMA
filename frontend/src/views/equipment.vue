@@ -16,7 +16,7 @@
                 <v-btn @click="show_modal = true" style="background-color: #5D5FEF; color: white;">
                     Add Equipment
                 </v-btn>
-                <modal :show="show_modal" @add_equipment="add_equipment"></modal>
+                
             </v-col>
         </v-row>
 

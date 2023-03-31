@@ -10,7 +10,7 @@
             <v-col cols="8">
             </v-col>
         </v-row>
-        <!-- <router-link v-if="this.$route.params.id == this.$store.state.user.email" class="text-white position-absolute fs-3" :to="{ name: 'Setup' }" style="width: 30px; top: 30px; right:60px"><i class="fa-solid fa-pen rounded-circle border border-white border-3 p-2"></i></router-link> -->
+        
             <v-div v-if="selectedRecord.status == 'SCHEDULED' ">
                 <h2>Maintenance Record ID: {{ selectedRecord._id }} </h2>
                 <h3>Equipment ID: {{ selectedRecord.equipment.equipment_id }}</h3>
@@ -49,7 +49,7 @@
                     </v-btn>
                 </v-row>  
             </v-div>
-            
+
             <v-container v-else-if="selectedRecord.status =='STARTED'">
                 <v-row>
                     <v-col>
@@ -132,9 +132,11 @@
                         End
                     </v-btn>
                 </v-row>  
-
-                {{ new Date().toISOString() }}
             </v-container>
+
+            <v-div v-else>
+                
+            </v-div>
     </v-container>
 
 </template>
@@ -163,7 +165,7 @@ export default {
 
     methods: {
         update_maintenance_status(){
-            console.log("=== START update_maintenance_status ===")
+            console.log("=== START update_maintenance_status() ===")
 
             var datetime_arr = this.current_date.split("T");
             var date = datetime_arr[0]
