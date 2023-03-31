@@ -13,7 +13,7 @@
         <!-- <router-link v-if="this.$route.params.id == this.$store.state.user.email" class="text-white position-absolute fs-3" :to="{ name: 'Setup' }" style="width: 30px; top: 30px; right:60px"><i class="fa-solid fa-pen rounded-circle border border-white border-3 p-2"></i></router-link> -->
             <v-div v-if="selectedRecord.status == 'SCHEDULED' ">
                 <h2>Maintenance Record ID: {{ selectedRecord._id }} </h2>
-                <h3>Equipment ID: {{ selectedRecord.equipment_id }}</h3>
+                <h3>Equipment ID: {{ selectedRecord.equipment.equipment_id }}</h3>
                 <!-- <h3>Current Status: {{ status }}</h3>
                 <h3>Scheduled for: {{ }}</h3>  -->
 
@@ -59,7 +59,7 @@
 
                 <v-row style="margin-top: 0">
                     <v-col>
-                        <h3>Equipment ID: {{ selectedRecord.equipment_id }} </h3>
+                        <h3>Equipment ID: {{ selectedRecord.equipment.equipment_id}} </h3>
                     </v-col>
                 </v-row>
 
@@ -164,12 +164,32 @@ export default {
     methods: {
         update_maintenance_status(){
             console.log("=== START update_maintenance_status ===")
-            let datetime = new Date().toLocaleDateString("en-GB")
-            console.log(datetime)
+
+            var datetime_arr = this.current_date.split("T");
+            var date = datetime_arr[0]
+            var time = datetime_arr[1]
+            var date_arr = date.split("-")
+            var time_arr = time.split(":")
+
+            var month = date_arr[1]
+            var day = date_arr[2]
+            var year = date_arr[0]
+
+            var hour = time_arr[0]
+            var minute = time_arr[1]
+
+            console.log(month)
+            console.log(day)
+            console.log(year)
+
+            var formatted_datetime = day + '-' + month + '-' + year + " " + hour + ":" + minute + ":00"
+            console.log(formatted_datetime)
+
+            // console.log(datetime)
             let data = {
-                "equipment_id": this.selectedRecord.equipment.equipment_id,
+                "equipment": this.selectedRecord.equipment,
                 // doesnt work when i put current time but hardcoded is ok
-                "start_datetime": datetime
+                "start_datetime": formatted_datetime
             }
             console.log(data);
             axios.put(`${maintenanceControllerURL}/start_maintenance/${this.selectedRecord._id}`, data, {
@@ -181,6 +201,7 @@ export default {
                 }).then(response => {
                     console.log(response.data)
                     alert("Success")
+                    this.$router.go()
                 }).catch(error =>{
                     console.error(error)
                     alert("Failed")
@@ -240,17 +261,21 @@ export default {
             var date = datetime_arr[0]
             var time = datetime_arr[1]
             var date_arr = date.split("-")
+            var time_arr = time.split(":")
 
             var month = date_arr[1]
             var day = date_arr[2]
             var year = date_arr[0]
 
-            // console.log(month)
-            // console.log(day)
-            // console.log(year)
+            var hour = time_arr[0]
+            var minute = time_arr[1]
 
-            this.current_date = day + '/' + month + '/' + year + " " + time + ":00"
-            console.log(this.current_date)
+            console.log(month)
+            console.log(day)
+            console.log(year)
+
+            var formatted_datetime = day + '-' + month + '-' + year + " " + hour + ":" + minute + ":00"
+            console.log(formatted_datetime)
 
             let data = {
                 "equipment": this.selectedRecord.equipment,
@@ -261,7 +286,7 @@ export default {
                 "partlist": this.selectedRecord.partlist,
                 "return_partlist": this.unusedPartList,
                 // "end_datetime": "31-03-2023 17:30:00",
-                "end_datetime": this.current_date,
+                "end_datetime": formatted_datetime,
                 "description": this.description,
                 "maintenance_status": this.status
             }
@@ -275,6 +300,7 @@ export default {
                 }).then(response => {
                     console.log(response.data)
                     alert("Successfully ended maintenance")
+                    this.$router.go()
                 }).catch(error =>{
                     console.error(error)
                     alert("Failed to end maintenance")
