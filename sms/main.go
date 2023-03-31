@@ -35,7 +35,7 @@ func main() {
 
 	//RABBITMQ CONSUMERS
 	maintenanceMsgs, err := ch.Consume(
-		"Maintenance", // queue
+		"Maintenance_SMS", // queue
 		"",            // consumer
 		true,          // auto ack
 		false,         // exclusive
@@ -44,39 +44,13 @@ func main() {
 		nil,           // args
 	)
 	failOnError(err, "Failed to register a consumer")
+	
+
 
 	// execMsgs, err := ch.Consume(
 	// 	"Execute_Maintenance", // queue
 	// 	"",                // consumer
 	// 	true,              // auto ack
-	// 	false,             // exclusive
-	// 	false,             // no local
-	// 	false,             // no wait
-	// 	nil,               // args
-	// )
-	// failOnError(err, "Failed to register a consumer")
-
-	// orderMsgs, err := ch.Consume(
-	// 	"Order_Parts", // queue
-	// 	"",                // consumer
-	// 	true,              // auto ack
-	// 	false,             // exclusive
-	// 	false,             // no local
-	// 	false,             // no wait
-	// 	nil,               // args
-	// )
-	// failOnError(err, "Failed to register a consumer")
-
-	// returnMsgs, err := ch.Consume(
-	// 	"Return_Parts", // queue
-	// 	"",                // consumer
-	// 	true,              // auto ack
-	// 	false,             // exclusive
-	// 	false,             // no local
-	// 	false,             // no wait
-	// 	nil,               // args
-	// )
-	// failOnError(err, "Failed to register a consumer")
 
 	var forever chan struct{}
 
@@ -92,7 +66,7 @@ func main() {
 
 			fmt.Println(maintenanceSMS.Equipment.EquipmentID)
 			fmt.Println(maintenanceSMS.Technician.Phone)
-			// SendMessage(&maintenanceSMS)
+			SendMessage(&maintenanceSMS)
 		}
 	}()
 

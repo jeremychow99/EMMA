@@ -1,8 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
-
+	"fmt"
 	// "github.com/joho/godotenv"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -29,17 +30,20 @@ func main() {
 	failOnError(err, "Failed to open a channel")
 	defer ch.Close()
 
-	q, err := ch.QueueDeclare(
-		"test", // name
-		false,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
+
+	maintenanceEmails, err := ch.Consume(
+		"Maintenance_Email", // queue
+		"",     // consumer
+		true,   // auto-ack
+		false,  // exclusive
+		false,  // no-local
+		false,  // no-wait
+		nil,    // args
 	)
-	failOnError(err, "Failed to declare a queue")
-	msgs, err := ch.Consume(
-		q.Name, // queue
+	failOnError(err, "Failed to register a consumer")
+	
+	procurementEmails, err := ch.Consume(
+		"Order_Parts", // queue
 		"",     // consumer
 		true,   // auto-ack
 		false,  // exclusive
@@ -52,9 +56,28 @@ func main() {
 	var forever chan struct{}
 
 	go func() {
-		for d := range msgs {
+		for d := range maintenanceEmails {
+			var maintenanceEmail MaintenanceEmail
 			log.Printf("Received a message: %s", d.Body)
-			SendEmail()
+			err := json.Unmarshal(d.Body, &maintenanceEmail)
+			if err != nil {
+				fmt.Println(err)
+			}
+			SendMaintenanceEmail(&maintenanceEmail)
+		}
+	}()
+	go func() {
+		for d := range procurementEmails {
+			var procurementEmail ProcurementEmail
+			log.Printf("Received a message: %s", d.Body)
+			err := json.Unmarshal(d.Body, &procurementEmail)
+			if err != nil {
+				fmt.Println(err)
+			}
+			for i := range procurementEmail {
+				fmt.Println(procurementEmail[i].PartName)
+			}
+			SendProcurementEmail(procurementEmail)
 		}
 	}()
 

@@ -4,22 +4,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	// "strconv"
 
 	"github.com/twilio/twilio-go"
 	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
 )
 
-// EDIT to take in message params, as well as send to admin or technician
 func SendMessage(sms *MaintenanceSMS) {
+	// toNum := "+65" + strconv.Itoa(sms.Technician.Phone)
 	from := os.Getenv("TWILIO_FROM_PHONE_NUMBER")
 	to := os.Getenv("TWILIO_TO_PHONE_NUMBER")
 
-	fmt.Println(sms.Equipment)
+	fmt.Println(sms.Technician.Name)
 	client := twilio.NewRestClient()
 	params := &twilioApi.CreateMessageParams{}
 	params.SetTo(to)
 	params.SetFrom(from)
-	params.SetBody("equipment ID:")
+	params.SetBody(
+		"Hello " + sms.Technician.Name + ", you have a new maintenance scheduled.\n" +
+		"Date: " + sms.ScheduleDate + "\n" +
+		"Equipment ID: " + sms.Equipment.EquipmentID  + "\n" +
+		"Equipment Name: " + sms.Equipment.EquipmentName + "\n" +
+		"Location: " + sms.Equipment.EquipmentLocation)
 
 	resp, err := client.Api.CreateMessage(params)
 	if err != nil {
