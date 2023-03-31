@@ -307,16 +307,26 @@ def reserveParts(partList):
 
 def returnParts(partList):
 
-    print("Returning Parts")
+    print("Returning Parts: ", partList)
 
-    amqp_setup.check_setup()
+    parts_result = requests.request('PUT', f'{inventoryAPI}/return', json=partList).json()
+    print("Part Results: ", parts_result)
+    code = parts_result["code"] 
 
-    amqp_setup.channel.basic_publish(
-        exchange=amqp_setup.exchangename, 
-        routing_key="return.parts", 
-        body=json.dumps(partList), 
-        properties=pika.BasicProperties(delivery_mode = 2)
-    )
+    # Parts sucessfully returned
+    returnedList = parts_result['data']['returned_part_list']
+
+    return returnedList
+    
+
+    # amqp_setup.check_setup()
+
+    # amqp_setup.channel.basic_publish(
+    #     exchange=amqp_setup.exchangename, 
+    #     routing_key="return.parts", 
+    #     body=json.dumps(partList), 
+    #     properties=pika.BasicProperties(delivery_mode = 2)
+    # )
 
 
 def orderParts(partList):

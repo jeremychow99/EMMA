@@ -3,10 +3,6 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from bson import ObjectId
-import pika
-from threading import Thread
-
-import json
 import os
 
 
@@ -26,28 +22,6 @@ collection = db[COLLECTION_NAME]
 
 CORS(app)
 
-
-hostname = "rabbitmq" # default hostname
-port = 5672 # default port
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters(
-        host=hostname, port=port,
-        heartbeat=3600, blocked_connection_timeout=3600, # these parameters to prolong the expiration time (in seconds) of the connection
-))
-channel = connection.channel()
-
-print("Consuming Part Return Messages")
-
-
-def callback(channel, method, properties, body):
-    print(body, flush=True)
-    # print(json.loads(body))
-    # return_parts(json.loads(body))
-
-queue_name = 'Return_Parts'
-channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
-thread = Thread(target = channel.start_consuming)
-thread.start()
 
 ##########################################
 #GET ALL PARTS
@@ -147,14 +121,13 @@ def reserve_parts():
             }), 200
 
 
-
-
 #RETURN PARTS TO DB
-# @app.route("/inventory/return", methods = ['PUT'])
-def return_parts(parts):
+@app.route("/inventory/return", methods = ['PUT'])
+def return_parts():
     # Get parts and quantities from JSON request body
-    # data = request.get_json()
-    # parts = data['partList']
+    data = request.get_json()
+    print("Received partlist: ", data)
+    parts = data
 
     #returned parts list to return
     print("Returning Parts ", parts)
