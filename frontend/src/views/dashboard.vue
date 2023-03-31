@@ -112,46 +112,50 @@
       </v-col-3>
 
       <v-col-9>
-
       <!-- Maintenance Table -->
-      <div class="text-h6 mx-3">Upcoming Maintenance</div>
-        <v-table
-        fixed-header
-        height="300px"
-        >
-          <thead>
-            <tr>
-              <th class="text-left">
-                Maintenance ID
-              </th>
-              <th class="text-left">
-                Equipment ID
-              </th>
-              <th class="text-left">
-                Scheduled Date
-              </th>
-              <th class="text-left">
-                Status
-              </th>
-              <!-- <th class="text-left">
-                Technician ID
-              </th> -->
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="mtn in maintenance_arr"
-              :key="mtn['_id']"
+      <div v-if="upcomingExists">
+        <div class="text-h6 mx-3">Upcoming Maintenance</div>
+            <v-table
+            fixed-header
+            height="300px"
             >
-              <td>{{ mtn._id }}</td>
-              <td>{{ mtn.equipment.equipment_id }}</td>
-              <td>{{ mtn.schedule_date }}</td>
-              <td>{{ mtn.status }}</td>
-              <!-- <td>{{ mtn.technician_id }}</td> -->
-            </tr>
-          </tbody>
-        </v-table>
-        
+              <thead>
+                <tr>
+                  <th class="text-left">
+                    Maintenance ID
+                  </th>
+                  <th class="text-left">
+                    Equipment ID
+                  </th>
+                  <th class="text-left">
+                    Scheduled Date
+                  </th>
+                  <th class="text-left">
+                    Status
+                  </th>
+                  <!-- <th class="text-left">
+                    Technician ID
+                  </th> -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="mtn in upcomingMtn_arr"
+                  :key="mtn['_id']"
+                >
+                  <td>{{ mtn._id }}</td>
+                  <td>{{ mtn.equipment.equipment_id }}</td>
+                  <td>{{ mtn.schedule_date }}</td>
+                  <td>{{ mtn.status }}</td>
+                  <!-- <td>{{ mtn.technician_id }}</td> -->
+                </tr>
+              </tbody>
+            </v-table>
+        </div>
+        <!-- If no upcoming maintenance -->
+        <div v-else>
+          <p class="text-h4 font-weight-bold text-red-darken-3 px-10 py-16">No Upcoming Maintenance!</p>
+        </div>
       </v-col-9>
     </v-row>
   </v-container>
@@ -159,6 +163,7 @@
   <v-container>
     <div class="text-h6">Maintenance History</div>
     <Bar
+      v-if="chartLoaded"
       id="my-chart-id"
       :options="chartOptions"
       :data="chartData"
@@ -174,7 +179,7 @@ import navbar from "../components/navbar.vue";
 import { equipmentURL, maintenanceURL } from '../../api'
 import axios from "axios";
 import { Bar } from 'vue-chartjs'
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, scales } from 'chart.js'
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
@@ -194,23 +199,54 @@ export default {
         showReport: false,
 
         maintenance_arr: [],
+        upcomingMtn_arr: [],
+        upcomingExists: false,
 
+        chartLoaded: false,
         chartData: {
-          labels: [ 'January', 'February', 'March' ],
-          datasets: [ { data: [40, 20, 12] } ]
+          labels: [],
+          datasets: [ { data: [] } ]
         },
         chartOptions: {
-          responsive: true
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false,
+            }
+          },
+          scales: {
+            y: {
+              title: {
+                text: 'Number of Maintenances',
+                display: true,
+              },
+            },
+            x: {
+              title: {
+                text: 'Date',
+                // display: true,
+              }
+            }
+          }
         }
       }
   },
 
   methods: {
+    // Converts maintenance date format from DB to Time thing
+    convertMtnDate(mtn_date) {
+      var mtnDate = mtn_date.replace(/-/g, '/')
+      var mtnDate = mtnDate.slice(0,-3)
+      var changedDate = mtnDate.replace(/(..)\/(..)\/(....) (..):(..)/, '$3-$2-$1 $4:$5')
+      var mtnTime = new Date(changedDate)
+      return mtnTime
+    },
+
     updateEquipmentStatus() {
       // console.log(this.equipment_arr)
 
       this.equipment_arr.forEach((eqp) => {
-        // console.log(eqp)
+        // console.log(eqp.equipment_status)
         if (eqp.equipment_status == "Undergoing Maintenance" || eqp.equipment_status == "Down") {
           this.eqpMaintain ++
         }
@@ -222,16 +258,83 @@ export default {
       this.eqpPercentOperational = (this.eqpNoMaintain / (this.eqpMaintain + this.eqpNoMaintain)) * 100
       this.eqpPercentOperational = this.eqpPercentOperational.toFixed(0)
     },
-
+  
   checkUpcomingMaintenance() {
     // console.log(this.maintenance_arr)
 
-    this.maintenance_arr.forEach((mtn) => {
-      // console.log(mtn.schedule_date)
+    var todayDate = new Date();
+    var todayTime = todayDate.getTime()
+    // console.log(todayDate.getTime());
 
+    // Loop through each maintenance record, check if scheduled date has already passed
+    this.maintenance_arr.forEach((mtn) => {
+      if (mtn.schedule_date) {
+        // console.log(mtn.schedule_date)
+        var mtnTime = this.convertMtnDate(mtn.schedule_date)
+        if (mtnTime >= todayTime) {
+          this.upcomingExists = True
+          this.upcomingMtn_arr.push(mtn)
+        }
+      }
+    })
+  },
+
+  populateBarChart() {
+    var numMtnLast = 0
+    var numMtnCurrent = 0
+    var numMtnNext = 0
+
+    // function to get First and Last days of each week
+    Date.prototype.GetFirstDayOfWeek = function() {
+    return (new Date(this.setDate(this.getDate() - this.getDay()+ (this.getDay() == 0 ? -6:1) )));
+    }
+    Date.prototype.GetLastDayOfWeek = function() {
+        return (new Date(this.setDate(this.getDate() - this.getDay() +7)));
+    }
+
+    var currentWeek = new Date();
+    var lastWeek = new Date(currentWeek.getFullYear(), currentWeek.getMonth(), currentWeek.getDate() - 7);
+    var nextWeek = new Date(currentWeek.getFullYear(), currentWeek.getMonth(), currentWeek.getDate() + 7);
+
+    // Get time for start and end of each week
+    var currentStartTime = currentWeek.GetFirstDayOfWeek().getTime()
+    var currentEndTime = currentWeek.GetLastDayOfWeek().getTime()
+
+    var lastStartTime = lastWeek.GetFirstDayOfWeek().getTime()
+    var lastEndTime = lastWeek.GetLastDayOfWeek().getTime()
+
+    var nextStartTime = nextWeek.GetFirstDayOfWeek().getTime()
+    var nextEndTime = nextWeek.GetLastDayOfWeek().getTime()
+    // console.log(currentWeek)
+    // console.log(currentWeek.GetFirstDayOfWeek())
+    // console.log(currentWeek.GetLastDayOfWeek())
+
+    // Generate labels for X-Axis (weeks)
+    this.chartData.labels = [
+      `${lastWeek.GetFirstDayOfWeek().getDate()}/${lastWeek.GetFirstDayOfWeek().getMonth()} - ${lastWeek.GetLastDayOfWeek().getDate()}/${lastWeek.GetLastDayOfWeek().getMonth()}`,
+      `${currentWeek.GetFirstDayOfWeek().getDate()}/${currentWeek.GetFirstDayOfWeek().getMonth()} - ${currentWeek.GetLastDayOfWeek().getDate()}/${currentWeek.GetLastDayOfWeek().getMonth()}`,
+      `${nextWeek.GetFirstDayOfWeek().getDate()}/${nextWeek.GetFirstDayOfWeek().getMonth()} - ${nextWeek.GetLastDayOfWeek().getDate()}/${nextWeek.GetLastDayOfWeek().getMonth()}`,
+      ]
+    
+    // Loop through maintenance records and how many maintenance in each week
+    this.maintenance_arr.forEach((mtn) => {
+      if (mtn.schedule_date)  {
+        var mtnTime = this.convertMtnDate(mtn.schedule_date)
+        if (lastStartTime <= mtnTime <= lastEndTime) {
+          numMtnLast++
+        }
+        else if (currentStartTime <= mtnTime <= currentEndTime) {
+          numMtnCurrent++
+        }
+        else if (nextStartTime <= mtnTime <= nextEndTime) {
+          numMtnLast++
+        }
+      }
     })
 
-  },
+    this.chartData.datasets = [ { data: [numMtnLast, numMtnCurrent, numMtnNext] } ]
+    this.chartLoaded = true
+  }
 },
 
   async mounted() {
@@ -243,6 +346,7 @@ export default {
 
         this.updateEquipmentStatus()
         this.checkUpcomingMaintenance()
+        this.populateBarChart()
     }
 
   
