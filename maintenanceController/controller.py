@@ -7,6 +7,8 @@ import amqp_setup
 import pika
 import json
 
+import time
+
 app = Flask(__name__)
 CORS(app)
 
@@ -28,7 +30,7 @@ def scheduleMaintenance():
     print("Schedule Maintenance Function Triggered!")
 
     data = request.get_json()
-    print(data)
+    print("Received Maintenance Data\n",data)
     eqp_id = data["equipment"]["equipment_id"]
     eqp_name = data["equipment"]["equipment_name"]
     schedule_date = data["schedule_date"]
@@ -151,14 +153,14 @@ def requestParts(maintenance_id):
     requested_parts = data["req_partlist"]
     current_parts = data["partlist"]
 
-    print(current_parts)
+    print("Current Reserved Parts: ", current_parts)
 
     result = reserveParts(requested_parts)
     
     if type(result) != str:
         reserved_list, missing_list = result
-        print(reserved_list)
-        print(missing_list)
+        print("Successfully Reserved Parts: ",reserved_list)
+        print("Missing Parts: ",missing_list)
 
         additional_parts_dict = {}
 
@@ -183,7 +185,7 @@ def requestParts(maintenance_id):
             'partlist': current_parts
         }
 
-        print(current_parts)
+        print("Updated PartList for Maintenance: ", current_parts)
         
         maintenance_result = requests.request('PUT', f'{maintenanceAPI}/{maintenance_id}', json = update).json()
         maintenance_code = maintenance_result['code']
@@ -206,7 +208,7 @@ def requestParts(maintenance_id):
         else:
             
             # Return reserved parts (RabbitMQ)
-            print("Error Occurred: Returning Parts")
+            print("Error Occurred, Returning Parts.......")
             returnParts(reserved_list)
 
             return jsonify({
@@ -225,7 +227,7 @@ def endMaintenance(maintenance_id):
     3. Send out Notification (Email + SMS)
     '''
     data = request.get_json()
-    eqp_id = data["equipment_id"]
+    eqp_id = data["equipment"]["equipment_id"]
     end_datetime = data["end_datetime"]
     maintenance_status = data["maintenance_status"]
     description = data["description"]
@@ -305,14 +307,26 @@ def reserveParts(partList):
 
 def returnParts(partList):
 
-    amqp_setup.check_setup()
+    print("Returning Parts: ", partList)
 
-    amqp_setup.channel.basic_publish(
-        exchange=amqp_setup.exchangename, 
-        routing_key="return.parts", 
-        body=json.dumps(partList), 
-        properties=pika.BasicProperties(delivery_mode = 2)
-    )
+    parts_result = requests.request('PUT', f'{inventoryAPI}/return', json=partList).json()
+    print("Part Results: ", parts_result)
+    code = parts_result["code"] 
+
+    # Parts sucessfully returned
+    returnedList = parts_result['data']['returned_part_list']
+
+    return returnedList
+    
+
+    # amqp_setup.check_setup()
+
+    # amqp_setup.channel.basic_publish(
+    #     exchange=amqp_setup.exchangename, 
+    #     routing_key="return.parts", 
+    #     body=json.dumps(partList), 
+    #     properties=pika.BasicProperties(delivery_mode = 2)
+    # )
 
 
 def orderParts(partList):
@@ -346,4 +360,5 @@ def executeMaintenance(maintenanceData, start):
 
 
 if __name__ == '__main__':
+    # time.sleep(30)
     app.run(host='0.0.0.0', port=8080, debug=True)
