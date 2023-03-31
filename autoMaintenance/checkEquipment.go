@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+
 )
 
 type alias struct {
@@ -48,17 +49,20 @@ func getMaintenancesForEqp(eqpID string) []Maintenance {
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println(len(resp.Data))
 	return resp.Data
 }
 
-func getEqp(eqpID string) Eqp1 {
+func getEqp(eqpID string) (Eqp1, error) {
 	url := "http://host.docker.internal:4999/equipment/" + eqpID
 	var resp eqpResp
 	err := getJson(url, &resp)
 	if err != nil {
 		log.Println(err)
+		log.Println("ERROR")
+		return resp.Eqp1, err
 	}
-	return resp.Eqp1
+	return resp.Eqp1, err
 }
 
 func getBusyTechs(dateStr string) []string {
@@ -179,29 +183,37 @@ func getTechnicians() []User {
 func testFunc(rw http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		rw.WriteHeader(405)
-		rw.Write([]byte("Method Not Allowed"))
+		rw.Write([]byte("Only POST Method Allowed"))
 	}
 
 	decoder := json.NewDecoder(req.Body)
 	var data PostReqData
 	err := decoder.Decode(&data)
 	if err != nil {
-		panic(err)
+		log.Panicln(err)
 	}
 	eqpID := data.EquipmentID
 	// update equipment status
 	// make post request
-	e := getEqp(eqpID)
+	e, err := getEqp(eqpID)
+	if err != nil {
+		rw.WriteHeader(404)
+		rw.Write([]byte("Error getting entry (check if equipment_id is valid)"))
+		return
+	}
 	e.EquipmentStatus = "Down"
 	jsonData, err := json.Marshal(e)
 	if err != nil {
 		log.Fatal(err)
 	}
-	resp, err := http.Post("http://host.docker.internal:4999/equipment/" + eqpID,
+	resp, err := http.Post("http://host.docker.internal:4999/equipment/"+eqpID,
 		"application/json",
 		bytes.NewBuffer(jsonData))
 	if err != nil {
 		log.Fatal(err)
+		rw.WriteHeader(404)
+		rw.Write([]byte("Error updating equipment status"))
+		return
 	}
 	var res map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&res)
@@ -225,6 +237,8 @@ func testFunc(rw http.ResponseWriter, req *http.Request) {
 		}
 		if status {
 			fmt.Println("BREAKING")
+			rw.WriteHeader(403)
+			rw.Write([]byte("Equipment has a scheduled Maintenanace which is earlier than the next available date."))
 			break
 		}
 		// invoke api to check , if code = 404
