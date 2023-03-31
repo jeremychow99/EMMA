@@ -159,11 +159,11 @@
         </div>
       </v-col>
     </v-row>
+    <v-divider class="mt-5" :thickness="3"></v-divider>
   </v-container>
 
   <!-- Maintenance History Chart -->
   <v-container>
-    <v-divider class="mb-5" :thickness="3"></v-divider>
     <div class="text-h6">Maintenance History</div>
     <Bar
       v-if="chartLoaded"
