@@ -19,11 +19,12 @@ func init() {
 func runCronJobs() {
 	s := cron.New()
 
-	s.AddFunc("@every 10s", checkEquipment)
+	// s.AddFunc("@every 10s", checkEquipment)	
 
 	s.Start()
     mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
+	mux.HandleFunc("/mockIOT", testFunc)
 
 	log.Println("Starting server on :4001")
 	err := http.ListenAndServe(":4001", mux)

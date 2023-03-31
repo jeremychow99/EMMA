@@ -115,12 +115,14 @@ services:
     #   rabbit_port: 5672
     container_name: inventory
   
-  # automaintenance:
-  #   build:
-  #     context: ./autoMaintenance
-  #     dockerfile: Dockerfile
-  #   restart: on-failure
-  #   container_name: automaintenance
+  automaintenance:
+    build:
+      context: ./autoMaintenance
+      dockerfile: Dockerfile
+    restart: on-failure
+    ports:
+      - "4001:4001"
+    container_name: automaintenance
 
 #######################################
   # Postgres: The database used by Kong
