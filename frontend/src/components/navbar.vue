@@ -55,7 +55,7 @@ export default {
   },
   computed: {
     isAdmin() {
-      return sessionStorage.getItem('role') === "ADMIN"
+      return localStorage.getItem('role') === "ADMIN"
     }
   }
   // TODO: Implement Logout button
