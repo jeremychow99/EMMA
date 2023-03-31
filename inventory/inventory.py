@@ -3,8 +3,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from bson import ObjectId
-import amqp_setup
-
+import pika
+from threading import Thread
+import time
 import json
 import os
 
@@ -24,6 +25,29 @@ db = client[DB_NAME]
 collection = db[COLLECTION_NAME]
 
 CORS(app)
+
+
+hostname = "rabbitmq" # default hostname
+port = 5672 # default port
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters(
+        host=hostname, port=port,
+        heartbeat=3600, blocked_connection_timeout=3600, # these parameters to prolong the expiration time (in seconds) of the connection
+))
+channel = connection.channel()
+
+print("Consuming Part Return Messages")
+
+
+def callback(channel, method, properties, body):
+    print(body, flush=True)
+    # print(json.loads(body))
+    # return_parts(json.loads(body))
+
+queue_name = 'Return_Parts'
+channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+thread = Thread(target = channel.start_consuming)
+thread.start()
 
 ##########################################
 #GET ALL PARTS
@@ -124,22 +148,6 @@ def reserve_parts():
 
 
 
-def receiveReturnRequest():
-
-    print("Consuming Part Return Messages")
-    amqp_setup.check_setup()
-
-    queue_name = 'Return_Parts'
-
-    amqp_setup.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
-    amqp_setup.channel.start_consuming()
-
-
-def callback(channel, method, properties, body):
-
-    print(json.loads(body))
-    return_parts(json.loads(body))
-
 
 #RETURN PARTS TO DB
 # @app.route("/inventory/return", methods = ['PUT'])
@@ -195,7 +203,7 @@ def return_parts(parts):
     }), 200
  
 if __name__ == '__main__':
-    receiveReturnRequest()
+    time.sleep(10)
     app.run(host='0.0.0.0', port=5001, debug=True)
     
 
