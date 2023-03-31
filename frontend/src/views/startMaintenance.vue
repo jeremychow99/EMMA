@@ -12,10 +12,29 @@
         </v-row>
         
             <v-div v-if="selectedRecord.status == 'SCHEDULED' ">
-                <h2>Maintenance Record ID: {{ selectedRecord._id }} </h2>
-                <h3>Equipment ID: {{ selectedRecord.equipment.equipment_id }}</h3>
-                <!-- <h3>Current Status: {{ status }}</h3>
-                <h3>Scheduled for: {{ }}</h3>  -->
+                <v-row>
+                    <v-col>
+                        <h2>Maintenance Record ID: {{ selectedRecord._id }}</h2>
+                    </v-col>
+                </v-row>
+
+                <v-row style="margin-top: 0">
+                    <v-col>
+                        <h3>Equipment ID: {{ selectedRecord.equipment.equipment_name}} </h3>
+                    </v-col>
+                </v-row>
+
+                <v-row style="margin-top: 0">
+                    <v-col>
+                        <h3>Current status: {{ selectedRecord.status }} </h3>
+                    </v-col>
+                </v-row>
+
+                <v-row style="margin-top: 0">
+                    <v-col>
+                        <h3>Scheduled for: {{ selectedRecord.schedule_date }}</h3>
+                    </v-col>
+                </v-row>
 
                 <v-table>
                     <thead>
@@ -59,7 +78,7 @@
 
                 <v-row style="margin-top: 0">
                     <v-col>
-                        <h3>Equipment ID: {{ selectedRecord.equipment.equipment_id}} </h3>
+                        <h3>Equipment ID: {{ selectedRecord.equipment.equipment_name}} </h3>
                     </v-col>
                 </v-row>
 
@@ -145,7 +164,7 @@
 
 <script>
 import navbar from "../components/navbar.vue"
-import { maintenanceURL, maintenanceControllerURL, inventoryURL } from '../../api'
+import { maintenanceURL, maintenanceControllerURL } from '../../api'
 import axios from "axios";
 
 export default {
@@ -202,11 +221,9 @@ export default {
                     }
                 }).then(response => {
                     console.log(response.data)
-                    alert("Success")
                     this.$router.go()
                 }).catch(error =>{
                     console.error(error)
-                    alert("Failed")
                 })
         }, 
 
@@ -239,24 +256,6 @@ export default {
             this.unusedPartList = temp_part_list
         }, 
 
-        // async update_inventory_parts(){
-        //     await axios.post(`${inventoryURL}/inventory/return}`, partObj, {
-        //             headers: {
-        //                 "Content-Type": "application/json",
-        //                 "Access-Control-Allow-Origin": "*",
-        //                 Authorization: "Bearer " + localStorage.token,
-        //             }
-        //         })
-        //         .then(response => {
-        //             console.log(response.data)
-        //             console.log("Updating inventory")
-        //         })
-        //         .catch(error=>{
-        //             console.log(error)
-        //             alert("did not update")
-        //         })
-        // },
-
         async end_of_maintenance(){
             console.log("=== START end_of_maintenance ===")
             var datetime_arr = this.current_date.split("T");
@@ -282,12 +281,9 @@ export default {
             let data = {
                 "equipment": this.selectedRecord.equipment,
                 "schedule_date": this.selectedRecord.schedule_date,
-                // "schedule_date": "29/03/2023",
                 "start_datetime": this.selectedRecord.equipment.start_datetime,
-                // "start_datetime": "30-03-2023 17:30:00",
                 "partlist": this.selectedRecord.partlist,
                 "return_partlist": this.unusedPartList,
-                // "end_datetime": "31-03-2023 17:30:00",
                 "end_datetime": formatted_datetime,
                 "description": this.description,
                 "maintenance_status": this.status

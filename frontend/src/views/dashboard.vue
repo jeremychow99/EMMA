@@ -45,10 +45,10 @@
   </v-container>
 
   <!-- 2nd Row of Content -->
-  <v-container>
+  <v-container fluid>
     <v-divider class="mb-5" :thickness="3"></v-divider>
     <v-row dense>
-      <v-col-3>
+      <v-col cols="3">
         <!-- Equipment Status Card -->
         <v-card
           title="Equipment Status"
@@ -64,7 +64,8 @@
               color="#3F75FC"
               :model-value="eqpPercentOperational"
               :size="128"
-              :width="20">
+              :width="20"
+              class="ml-16">
 
               <p class="font-weight-black text-h5">{{ eqpPercentOperational }}%</p>
             </v-progress-circular>
@@ -109,15 +110,15 @@
           </v-expand-transition>
         </v-card>
 
-      </v-col-3>
+      </v-col>
 
-      <v-col-9>
+      <v-col cols="9">
       <!-- Maintenance Table -->
       <div v-if="upcomingExists">
         <div class="text-h6 mx-3">Upcoming Maintenance</div>
             <v-table
             fixed-header
-            height="300px"
+            height="320px"
             >
               <thead>
                 <tr>
@@ -125,7 +126,7 @@
                     Maintenance ID
                   </th>
                   <th class="text-left">
-                    Equipment ID
+                    Equipment Name
                   </th>
                   <th class="text-left">
                     Scheduled Date
@@ -144,7 +145,7 @@
                   :key="mtn['_id']"
                 >
                   <td>{{ mtn._id }}</td>
-                  <td>{{ mtn.equipment.equipment_id }}</td>
+                  <td>{{ mtn.equipment.equipment_name }}</td>
                   <td>{{ mtn.schedule_date }}</td>
                   <td>{{ mtn.status }}</td>
                   <!-- <td>{{ mtn.technician_id }}</td> -->
@@ -156,14 +157,14 @@
         <div v-else>
           <p class="text-h4 font-weight-bold text-red-darken-3 px-10 py-16">No Upcoming Maintenance!</p>
         </div>
-      </v-col-9>
+      </v-col>
     </v-row>
+    <v-divider class="mt-5" :thickness="3"></v-divider>
   </v-container>
 
   <!-- Maintenance History Chart -->
   <v-container>
-    <v-divider class="mb-5" :thickness="3"></v-divider>
-    <div class="text-h6">Maintenance History</div>
+    <div class="text-h6">Maintenance Frequency</div>
     <Bar
       v-if="chartLoaded"
       id="my-chart-id"
@@ -181,7 +182,7 @@ import navbar from "../components/navbar.vue";
 import { equipmentURL, maintenanceURL } from '../../api'
 import axios from "axios";
 import { Bar } from 'vue-chartjs'
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, scales } from 'chart.js'
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, scales, elements } from 'chart.js'
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
@@ -207,7 +208,9 @@ export default {
         chartLoaded: false,
         chartData: {
           labels: [],
-          datasets: [ { data: [] } ]
+          datasets: [{
+            data: [],
+          }]
         },
         chartOptions: {
           responsive: true,
@@ -228,6 +231,25 @@ export default {
                 text: 'Date',
                 // display: true,
               }
+            }
+          },
+          elements: {
+            bar: {
+              backgroundColor: [
+              'rgba(0,105,92,0.4)',
+              'rgba(0,105,92,0.4)',
+              'rgba(0,105,92,0.8)',
+              'rgba(0,105,92,0.4)',
+              'rgba(0,105,92,0.4)',
+            ],
+            borderColor: [
+            'rgba(0,105,92,1)',
+            'rgba(0,105,92,1)',
+            'rgba(0,105,92,1)',
+            'rgba(0,105,92,1)',
+            'rgba(0,105,92,1)',
+            ],
+            borderWidth: 1,
             }
           }
         }
@@ -289,6 +311,8 @@ export default {
     var numMtnLast = 0
     var numMtnCurrent = 0
     var numMtnNext = 0
+    var numMtnFollowing = 0
+    var numMtnFollowingNext = 0
 
     // function to get First and Last days of each week
     Date.prototype.GetFirstDayOfWeek = function() {
@@ -301,6 +325,9 @@ export default {
     var currentWeek = new Date();
     var lastWeek = new Date(currentWeek.getFullYear(), currentWeek.getMonth(), currentWeek.getDate() - 7);
     var nextWeek = new Date(currentWeek.getFullYear(), currentWeek.getMonth(), currentWeek.getDate() + 7);
+    var followingWeek = new Date(currentWeek.getFullYear(), currentWeek.getMonth(), currentWeek.getDate() + 14);
+    var followingNextWeek = new Date(currentWeek.getFullYear(), currentWeek.getMonth(), currentWeek.getDate() + 21);
+
 
     // Get time for start and end of each week
     var currentStartTime = currentWeek.GetFirstDayOfWeek().getTime()
@@ -318,15 +345,23 @@ export default {
     // console.log(`next week start time: ${nextStartTime}`)
     // console.log(`next week end time: ${nextEndTime}`)
 
+    var followingStartTime = followingWeek.GetFirstDayOfWeek().getTime()
+    var followingEndTime = followingWeek.GetLastDayOfWeek().getTime()
+
+    var followingNextStartTime = followingNextWeek.GetFirstDayOfWeek().getTime()
+    var followingNextEndTime = followingNextWeek.GetLastDayOfWeek().getTime()
+
     // console.log(currentWeek)
     // console.log(currentWeek.GetFirstDayOfWeek())
     // console.log(currentWeek.GetLastDayOfWeek())
 
     // Generate labels for X-Axis (weeks)
     this.chartData.labels = [
-      `${lastWeek.GetFirstDayOfWeek().getDate()}/${lastWeek.GetFirstDayOfWeek().getMonth()} - ${lastWeek.GetLastDayOfWeek().getDate()}/${lastWeek.GetLastDayOfWeek().getMonth()}`,
-      `${currentWeek.GetFirstDayOfWeek().getDate()}/${currentWeek.GetFirstDayOfWeek().getMonth()} - ${currentWeek.GetLastDayOfWeek().getDate()}/${currentWeek.GetLastDayOfWeek().getMonth()}`,
-      `${nextWeek.GetFirstDayOfWeek().getDate()}/${nextWeek.GetFirstDayOfWeek().getMonth()} - ${nextWeek.GetLastDayOfWeek().getDate()}/${nextWeek.GetLastDayOfWeek().getMonth()}`,
+      `${lastWeek.GetFirstDayOfWeek().getDate()}/${lastWeek.GetFirstDayOfWeek().getMonth() + 1} - ${lastWeek.GetLastDayOfWeek().getDate()}/${lastWeek.GetLastDayOfWeek().getMonth() +1 }`,
+      `${currentWeek.GetFirstDayOfWeek().getDate()}/${currentWeek.GetFirstDayOfWeek().getMonth() + 1} - ${currentWeek.GetLastDayOfWeek().getDate()}/${currentWeek.GetLastDayOfWeek().getMonth() + 1}`,
+      `${nextWeek.GetFirstDayOfWeek().getDate()}/${nextWeek.GetFirstDayOfWeek().getMonth() + 1} - ${nextWeek.GetLastDayOfWeek().getDate()}/${nextWeek.GetLastDayOfWeek().getMonth() + 1}`,
+      `${followingWeek.GetFirstDayOfWeek().getDate()}/${followingWeek.GetFirstDayOfWeek().getMonth() + 1} - ${followingWeek.GetLastDayOfWeek().getDate()}/${followingWeek.GetLastDayOfWeek().getMonth() + 1}`,
+      `${followingNextWeek.GetFirstDayOfWeek().getDate()}/${followingNextWeek.GetFirstDayOfWeek().getMonth() + 1} - ${followingNextWeek.GetLastDayOfWeek().getDate()}/${followingNextWeek.GetLastDayOfWeek().getMonth() + 1}`,
       ]
     
     // Loop through maintenance records and how many maintenance in each week
@@ -341,17 +376,23 @@ export default {
         else if (currentStartTime <= mtnTime && mtnTime <= currentEndTime) {
           numMtnCurrent++
           // console.log('Current')
-
         }
         else if (nextStartTime <= mtnTime && mtnTime <= nextEndTime) {
           numMtnNext++
           // console.log('Next')
-
+        }
+        else if (followingStartTime <= mtnTime && mtnTime <= followingEndTime) {
+          numMtnFollowing++
+          // console.log('Next')
+        }
+        else if (followingNextStartTime <= mtnTime && mtnTime <= followingNextEndTime) {
+          numMtnFollowingNext++
+          // console.log('Next')
         }
       }
     })
 
-    this.chartData.datasets = [ { data: [numMtnLast, numMtnCurrent, numMtnNext] } ]
+    this.chartData.datasets = [ { data: [numMtnLast, numMtnCurrent, numMtnNext, numMtnFollowing, numMtnFollowingNext] } ]
     this.chartLoaded = true
   }
 },
