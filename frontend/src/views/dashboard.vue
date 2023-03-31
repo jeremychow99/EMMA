@@ -274,7 +274,7 @@ export default {
         // console.log(mtn.schedule_date)
         var mtnTime = this.convertMtnDate(mtn.schedule_date)
         if (mtnTime >= todayTime) {
-          this.upcomingExists = True
+          this.upcomingExists = true
           this.upcomingMtn_arr.push(mtn)
         }
       }
