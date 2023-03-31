@@ -106,12 +106,10 @@
 import navbar from "../components/navbar.vue"
 import { equipmentURL  } from '../../api'
 import axios from "axios";
-import modal from "../components/modal.vue"
 
 export default {
     components: {
         navbar,
-        modal
     },
 
     data(){ 
