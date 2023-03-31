@@ -182,7 +182,7 @@ ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 export default {
   components: {
       navbar,
-      Bar,
+      Bar
   },
 
   data() {
