@@ -157,7 +157,12 @@
   </v-container>
 
   <v-container>
-    <BarChart/>
+    <div class="text-h6">Maintenance History</div>
+    <Bar
+      id="my-chart-id"
+      :options="chartOptions"
+      :data="chartData"
+    />
   </v-container>
   
 </template>
@@ -168,12 +173,16 @@
 import navbar from "../components/navbar.vue";
 import { equipmentURL, maintenanceURL } from '../../api'
 import axios from "axios";
-import { Bar } from 'vue-chartjs';
+import { Bar } from 'vue-chartjs'
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
+
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
+
 
 export default {
   components: {
       navbar,
-      BarChart
+      Bar,
   },
 
   data() {
@@ -186,7 +195,13 @@ export default {
 
         maintenance_arr: [],
 
-        
+        chartData: {
+          labels: [ 'January', 'February', 'March' ],
+          datasets: [ { data: [40, 20, 12] } ]
+        },
+        chartOptions: {
+          responsive: true
+        }
       }
   },
 
@@ -208,7 +223,16 @@ export default {
       this.eqpPercentOperational = this.eqpPercentOperational.toFixed(0)
     },
 
+  checkUpcomingMaintenance() {
+    // console.log(this.maintenance_arr)
+
+    this.maintenance_arr.forEach((mtn) => {
+      // console.log(mtn.schedule_date)
+
+    })
+
   },
+},
 
   async mounted() {
         let eqp_result = await axios.get(equipmentURL)
@@ -218,6 +242,7 @@ export default {
         this.maintenance_arr = mtn_result.data.data.maintenance
 
         this.updateEquipmentStatus()
+        this.checkUpcomingMaintenance()
     }
 
   
