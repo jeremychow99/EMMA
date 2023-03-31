@@ -8,15 +8,15 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type MaintenanceMsg struct {
-	EquipmentID      string `json:"equipment_id"`
-	ScheduleDatetime string `json:"schedule_datetime"`
-	Partlist         []struct {
-		PartName string `json:"PartName"`
-		Qty      int    `json:"Qty"`
-		ID       string `json:"_id"`
-	} `json:"partlist"`
-}
+// type MaintenanceMsg struct {
+// 	EquipmentID      string `json:"equipment_id"`
+// 	ScheduleDatetime string `json:"schedule_datetime"`
+// 	Partlist         []struct {
+// 		PartName string `json:"PartName"`
+// 		Qty      int    `json:"Qty"`
+// 		ID       string `json:"_id"`
+// 	} `json:"partlist"`
+// }
 
 func failOnError(err error, msg string) {
 	if err != nil {
@@ -83,14 +83,16 @@ func main() {
 	go func() {
 		for d := range maintenanceMsgs {
 			log.Printf(" [x] %s", d.Body)
-			var maintenanceMsg MaintenanceMsg
+			var maintenanceSMS MaintenanceSMS
 
-			err := json.Unmarshal(d.Body, &maintenanceMsg)
+			err := json.Unmarshal(d.Body, &maintenanceSMS)
 			if err != nil {
 				fmt.Println(err)
 			}
-			fmt.Println(maintenanceMsg.EquipmentID)
-			SendMessage(maintenanceMsg.EquipmentID)
+
+			fmt.Println(maintenanceSMS.Equipment.EquipmentID)
+			fmt.Println(maintenanceSMS.Technician.Phone)
+			// SendMessage(&maintenanceSMS)
 		}
 	}()
 

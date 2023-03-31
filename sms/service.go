@@ -10,15 +10,16 @@ import (
 )
 
 // EDIT to take in message params, as well as send to admin or technician
-func SendMessage(details string) {
+func SendMessage(sms *MaintenanceSMS) {
 	from := os.Getenv("TWILIO_FROM_PHONE_NUMBER")
 	to := os.Getenv("TWILIO_TO_PHONE_NUMBER")
-	client := twilio.NewRestClient()
 
+	fmt.Println(sms.Equipment)
+	client := twilio.NewRestClient()
 	params := &twilioApi.CreateMessageParams{}
 	params.SetTo(to)
 	params.SetFrom(from)
-	params.SetBody("equipment ID:" + details)
+	params.SetBody("equipment ID:")
 
 	resp, err := client.Api.CreateMessage(params)
 	if err != nil {
