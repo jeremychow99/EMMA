@@ -112,46 +112,50 @@
       </v-col-3>
 
       <v-col-9>
-
       <!-- Maintenance Table -->
-      <div class="text-h6 mx-3">Upcoming Maintenance</div>
-        <v-table
-        fixed-header
-        height="300px"
-        >
-          <thead>
-            <tr>
-              <th class="text-left">
-                Maintenance ID
-              </th>
-              <th class="text-left">
-                Equipment ID
-              </th>
-              <th class="text-left">
-                Scheduled Date
-              </th>
-              <th class="text-left">
-                Status
-              </th>
-              <!-- <th class="text-left">
-                Technician ID
-              </th> -->
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="mtn in maintenance_arr"
-              :key="mtn['_id']"
+      <div v-if="upcomingExists">
+        <div class="text-h6 mx-3">Upcoming Maintenance</div>
+            <v-table
+            fixed-header
+            height="300px"
             >
-              <td>{{ mtn._id }}</td>
-              <td>{{ mtn.equipment.equipment_id }}</td>
-              <td>{{ mtn.schedule_date }}</td>
-              <td>{{ mtn.status }}</td>
-              <!-- <td>{{ mtn.technician_id }}</td> -->
-            </tr>
-          </tbody>
-        </v-table>
-        
+              <thead>
+                <tr>
+                  <th class="text-left">
+                    Maintenance ID
+                  </th>
+                  <th class="text-left">
+                    Equipment ID
+                  </th>
+                  <th class="text-left">
+                    Scheduled Date
+                  </th>
+                  <th class="text-left">
+                    Status
+                  </th>
+                  <!-- <th class="text-left">
+                    Technician ID
+                  </th> -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="mtn in upcomingMtn_arr"
+                  :key="mtn['_id']"
+                >
+                  <td>{{ mtn._id }}</td>
+                  <td>{{ mtn.equipment.equipment_id }}</td>
+                  <td>{{ mtn.schedule_date }}</td>
+                  <td>{{ mtn.status }}</td>
+                  <!-- <td>{{ mtn.technician_id }}</td> -->
+                </tr>
+              </tbody>
+            </v-table>
+        </div>
+        <!-- If no upcoming maintenance -->
+        <div v-else>
+          <p class="text-h4 font-weight-bold text-red-darken-3 px-10 py-16">No Upcoming Maintenance!</p>
+        </div>
       </v-col-9>
     </v-row>
   </v-container>
@@ -194,6 +198,8 @@ export default {
         showReport: false,
 
         maintenance_arr: [],
+        upcomingMtn_arr: [],
+        upcomingExists: false,
 
         chartData: {
           labels: [ 'January', 'February', 'March' ],
@@ -210,7 +216,7 @@ export default {
       // console.log(this.equipment_arr)
 
       this.equipment_arr.forEach((eqp) => {
-        // console.log(eqp)
+        // console.log(eqp.equipment_status)
         if (eqp.equipment_status == "Undergoing Maintenance" || eqp.equipment_status == "Down") {
           this.eqpMaintain ++
         }
@@ -226,9 +232,23 @@ export default {
   checkUpcomingMaintenance() {
     // console.log(this.maintenance_arr)
 
-    this.maintenance_arr.forEach((mtn) => {
-      // console.log(mtn.schedule_date)
+    var todayDate = new Date();
+    var todayTime = todayDate.getTime()
+    // console.log(todayDate.getTime());
 
+    // Loop through each maintenance record, check if scheduled date has already passed
+    this.maintenance_arr.forEach((mtn) => {
+      if (mtn.schedule_date) {
+        // console.log(mtn.schedule_date)
+        var mtnDate = mtn.schedule_date.replace(/-/g, '/')
+        var mtnDate = mtnDate.slice(0,-3)
+        var changedDate = mtnDate.replace(/(..)\/(..)\/(....) (..):(..)/, '$3-$2-$1 $4:$5')
+        var mtnTime = new Date(changedDate)
+        if (mtnTime >= todayTime) {
+          this.upcomingExists = True
+          this.upcomingMtn_arr.push(mtn)
+        }
+      }
     })
 
   },
