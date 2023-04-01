@@ -264,7 +264,7 @@ export default {
             status: "",
             requestPartsList: [],
             unusedPartList: [],
-            current_date: new Date().toISOString(),
+            current_date: new Date(),
         }
     },
 
@@ -272,7 +272,12 @@ export default {
         update_maintenance_status(){
             console.log("=== START update_maintenance_status() ===")
 
-            var datetime_arr = this.current_date.split("T");
+            var now = this.current_date
+            now.setHours(now.getHours() + 8.5);
+            now = now.toISOString()
+            console.log(now)
+
+            var datetime_arr = now.split("T");
             var date = datetime_arr[0]
             var time = datetime_arr[1]
             var date_arr = date.split("-")
@@ -298,18 +303,18 @@ export default {
                 "start_datetime": formatted_datetime
             }
             console.log(data);
-            axios.put(`${maintenanceControllerURL}/start_maintenance/${this.selectedRecord._id}`, data, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Access-Control-Allow-Origin": "*",
-                        Authorization: "Bearer " + localStorage.token,
-                    }
-                }).then(response => {
-                    console.log(response.data)
-                    this.$router.go()
-                }).catch(error =>{
-                    console.error(error)
-                })
+            // axios.put(`${maintenanceControllerURL}/start_maintenance/${this.selectedRecord._id}`, data, {
+            //         headers: {
+            //             "Content-Type": "application/json",
+            //             "Access-Control-Allow-Origin": "*",
+            //             Authorization: "Bearer " + localStorage.token,
+            //         }
+            //     }).then(response => {
+            //         console.log(response.data)
+            //         this.$router.go()
+            //     }).catch(error =>{
+            //         console.error(error)
+            //     })
         }, 
 
         request_parts(e){
@@ -392,7 +397,12 @@ export default {
 
         async end_of_maintenance(){
             console.log("=== START end_of_maintenance ===")
-            var datetime_arr = this.current_date.split("T");
+
+            var now = this.current_date
+            now.setHours(now.getHours() + 8.5);
+            now = now.toISOString()
+
+            var datetime_arr = now.split("T");
             var date = datetime_arr[0]
             var time = datetime_arr[1]
             var date_arr = date.split("-")
