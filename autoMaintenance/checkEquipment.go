@@ -92,94 +92,6 @@ func getTechnicians() []User {
 	return technicians
 }
 
-// func getScheduledEqp() (int, []Maintenance, []string) {
-// 	scheduledEqp := []string{}
-// 	count := 0
-// 	url := "http://host.docker.internal:5000/maintenance"
-// 	var resp MaintenanceResp
-// 	err := getJson(url, &resp)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	maintenances := resp.Data.Maintenance
-// 	for i := range maintenances {
-// 		if maintenances[i].Status != "COMPLETE - SUCCESSFUL" && maintenances[i].Status != "COMPLETE - UNSUCCESSFUL" {
-// 			scheduledEqp = append(scheduledEqp, maintenances[i].Equipment.EquipmentID)
-// 		}
-// 		count += 1
-// 	}
-// 	return count, maintenances, scheduledEqp
-// }
-
-// func checkEquipment() {
-// 	fmt.Println(time.Now())
-// 	url := "http://host.docker.internal:4999/equipment"
-// 	var resp EqpResp
-// 	err := getJson(url, &resp)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	equipmentList := resp.Data.EquipmentData
-// 	technicians := getTechnicians()
-
-// for _, e := range equipmentList {
-// 	status := false
-// 	count, maintenances, scheduledEqp := getScheduledEqp()
-// 	// if (e.ID == m.Equipment.EquipmentID && (m.Status == "COMPLETE - SUCCESSFUL" || m.Status == "COMPLETE - UNSUCCESSFUL") && e.EquipmentStatus == "Down" && !contains(scheduledEqp, e.ID) && count > 0) || (e.EquipmentStatus == "Down" && !contains(scheduledEqp, e.ID) && count > 0)
-// 	if e.EquipmentStatus == "Down" && !contains(scheduledEqp, e.ID) && count > 0 {
-// 		// add a day to current date.
-// 		date := time.Now().AddDate(0, 0, 1)
-// 		// while status == false, meaning havent schedule maintenance
-// 		for !status {
-// 			dateStr := date.Format("2006-01-02")
-// 			availList := technicians
-// 			busyTechs := getBusyTechs(dateStr)
-// 			// remove technician from available list
-// 			for i := range availList {
-// 				if contains(busyTechs, availList[i].ID) {
-// 					availList = append(availList[:i], availList[i+1:]...)
-// 				}
-// 			}
-
-// 			if len(availList) > 0 {
-// 				// invoke maintenance controller to schedule maintenance
-// 				testarr := []string{}
-// 				// e := e.Convert()
-// 				var st SubmitTechnician
-// 				st.ID, st.Name, st.Phone = availList[0].ID, availList[0].Name, availList[0].Phone
-// 				details := map[string]interface{}{"equipment": e, "schedule_date": dateStr, "partlist": testarr, "technician": st}
-// 				jsonData, err := json.Marshal(details)
-// 				fmt.Println(details)
-// 				if err != nil {
-// 					fmt.Println(err)
-// 					}
-
-// 					// check if schedule_date is earlier than original maintenance time
-// 					resp, err := http.Post("http://host.docker.internal:8080/schedule_maintenance",
-// 						"application/json",
-// 						bytes.NewBuffer(jsonData))
-// 					if err != nil {
-// 						log.Fatal(err)
-// 					}
-
-// 					var res map[string]interface{}
-// 					json.NewDecoder(resp.Body).Decode(&res)
-// 					fmt.Println(res["json"])
-
-// 					status = true
-// 				} else {
-
-// 					date = date.AddDate(0, 0, 1)
-// 					fmt.Println(maintenances)
-
-// 				}
-// 			}
-
-// 		}
-
-// 	}
-// }
-
 func testFunc(rw http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		rw.WriteHeader(405)
@@ -197,8 +109,10 @@ func testFunc(rw http.ResponseWriter, req *http.Request) {
 	// make post request
 	e, err := getEqp(eqpID)
 	if err != nil {
+		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(404)
-		rw.Write([]byte("Error getting entry (check if equipment_id is valid)"))
+		resp := []byte(`{"msg": "Error getting entry, please check that equipment_id is valid"}`)
+		rw.Write(resp)
 		return
 	}
 	e.EquipmentStatus = "Down"
@@ -211,8 +125,10 @@ func testFunc(rw http.ResponseWriter, req *http.Request) {
 		bytes.NewBuffer(jsonData))
 	if err != nil {
 		log.Fatal(err)
-		rw.WriteHeader(404)
-		rw.Write([]byte("Error updating equipment status"))
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(500)
+		resp := []byte(`{"msg": "Error updating equipment status"}`)
+		rw.Write(resp)
 		return
 	}
 	var res map[string]interface{}
@@ -225,7 +141,7 @@ func testFunc(rw http.ResponseWriter, req *http.Request) {
 	fmt.Println("===============")
 	status := false
 	date := time.Now().AddDate(0, 0, 1)
-	// while status is false, for current date, check if any maintenance date is same as this
+	// while status is false, for current date, check if any maintenance date is same
 	for !status {
 		dateStr := date.Format("2006-01-02")
 		for _, m := range maintenances {
@@ -236,9 +152,11 @@ func testFunc(rw http.ResponseWriter, req *http.Request) {
 			}
 		}
 		if status {
-			fmt.Println("BREAKING")
+			fmt.Println("Abort Scheduling due to earlier date existing")
+			rw.Header().Set("Content-Type", "application/json")
 			rw.WriteHeader(403)
-			rw.Write([]byte("Equipment has a scheduled Maintenanace which is earlier than the next available date."))
+			resp := []byte(`{"msg": "Equipment has a scheduled Maintenanace which is earlier than the next available auto-scheduled date."}`)
+			rw.Write(resp)
 			break
 		}
 		// invoke api to check , if code = 404
@@ -264,14 +182,17 @@ func testFunc(rw http.ResponseWriter, req *http.Request) {
 			if err != nil {
 				fmt.Println(err)
 			}
-
-			// check if schedule_date is earlier than original maintenance time
 			resp, err := http.Post("http://host.docker.internal:8080/schedule_maintenance",
 				"application/json",
 				bytes.NewBuffer(jsonData))
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			rw.Header().Set("Content-Type", "application/json")
+			rw.WriteHeader(403)
+			jsonResp := []byte(`{"msg": "Successfully scheduled a Maintenance for Equipment."}`)
+			rw.Write(jsonResp)
 
 			var res map[string]interface{}
 			json.NewDecoder(resp.Body).Decode(&res)
