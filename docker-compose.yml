@@ -24,6 +24,7 @@ services:
     # networks:
     #   - test-net
     container_name: sms
+    # image: jeremychow99/emma_sms
   
   maintenance:
     env_file:
@@ -32,8 +33,8 @@ services:
       context: ./maintenance
       dockerfile: Dockerfile
     restart: on-failure
-
     container_name: maintenance
+    # image: jeremychow99/emma_maintenance
 
   equipment:
     env_file:
@@ -42,8 +43,8 @@ services:
       context: ./equipment
       dockerfile: Dockerfile
     restart: on-failure
-
     container_name: equipment
+    # image: jeremychow99/emma_equipment
 
   email:
     env_file:
@@ -57,6 +58,7 @@ services:
     # networks:
     #   - test-net
     container_name: email
+    # image: jeremychow99/emma_email
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -73,17 +75,17 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  testsend:
-    build:
-      context: ./rmqTestSend
-      dockerfile: Dockerfile
-    depends_on:
-      - rabbitmq
-    restart: on-failure
+  # testsend:
+  #   build:
+  #     context: ./rmqTestSend
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - rabbitmq
+  #   restart: on-failure
 
-    # networks:
-    #   - test-net
-    container_name: testSend
+  #   # networks:
+  #   #   - test-net
+  #   container_name: testSend
 
   login:
     build:
@@ -94,6 +96,8 @@ services:
     container_name: login
     env_file:
       - ./login/utils/login.env
+    # image: jeremychow99/emma_login
+    
 
   inventory:
     env_file:
@@ -109,6 +113,8 @@ services:
     #   rabbit_host: rabbitmq
     #   rabbit_port: 5672
     container_name: inventory
+    # image: jeremychow99/emma_inventory
+
   
   automaintenance:
     build:
@@ -117,6 +123,8 @@ services:
     restart: on-failure
 
     container_name: automaintenance
+    # image: jeremychow99/emma_automaintenance
+
 
   maintenance_controller:
     build:
@@ -125,8 +133,9 @@ services:
     restart: always
     depends_on: 
       - rabbitmq
-
     container_name: maintenance_controller
+    # image: jeremychow99/emma_maintenance_controller
+
 
 
 #######################################
