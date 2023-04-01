@@ -277,27 +277,32 @@ export default {
     navbar,
   },
 
-  data() {
-    return {
-      inventory_arr: [],
-      selectedRecord: "",
-      description: "",
-      status: "",
-      requestPartsList: [],
-      unusedPartList: [],
-      current_date: new Date().toISOString(),
-    };
-  },
+    data() {
+        return {
+            inventory_arr: [],
+            selectedRecord: "",
+            description: "",
+            status: "",
+            requestPartsList: [],
+            unusedPartList: [],
+            current_date: new Date(),
+        }
+    },
 
   methods: {
     update_maintenance_status() {
       console.log("=== START update_maintenance_status() ===");
 
-      var datetime_arr = this.current_date.split("T");
-      var date = datetime_arr[0];
-      var time = datetime_arr[1];
-      var date_arr = date.split("-");
-      var time_arr = time.split(":");
+            var now = this.current_date
+            now.setHours(now.getHours() + 8.5);
+            now = now.toISOString()
+            console.log(now)
+
+            var datetime_arr = now.split("T");
+            var date = datetime_arr[0]
+            var time = datetime_arr[1]
+            var date_arr = date.split("-")
+            var time_arr = time.split(":")
 
       var month = date_arr[1];
       var day = date_arr[2];
@@ -433,13 +438,18 @@ export default {
       this.unusedPartList = temp_part_list;
     },
 
-    async end_of_maintenance() {
-      console.log("=== START end_of_maintenance ===");
-      var datetime_arr = this.current_date.split("T");
-      var date = datetime_arr[0];
-      var time = datetime_arr[1];
-      var date_arr = date.split("-");
-      var time_arr = time.split(":");
+        async end_of_maintenance(){
+            console.log("=== START end_of_maintenance ===")
+
+            var now = this.current_date
+            now.setHours(now.getHours() + 8.5);
+            now = now.toISOString()
+
+            var datetime_arr = now.split("T");
+            var date = datetime_arr[0]
+            var time = datetime_arr[1]
+            var date_arr = date.split("-")
+            var time_arr = time.split(":")
 
       var month = date_arr[1];
       var day = date_arr[2];
