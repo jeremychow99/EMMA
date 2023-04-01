@@ -84,7 +84,13 @@ export default {
             console.log(localStorage.token);
             console.log(localStorage.userId);
             console.log(localStorage.role)
-            this.$router.push({ name: "main" });
+
+            if (localStorage.role === "ADMIN") {
+              this.$router.push({ name: "dashboard" });
+            } else {
+              this.$router.push({ name: "techDashboard" });
+            }
+            
           }
         })
         .catch((err) => {

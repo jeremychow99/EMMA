@@ -19,6 +19,9 @@
                                     Scheduled Date
                                 </th>
                                 <th class="text-center">
+                                    Status
+                                </th>
+                                <th class="text-center">
                                     Select
                                 </th>
                             </tr>
@@ -31,6 +34,7 @@
                                 <td class="text-center">{{ maintenance.equipment["equipment_name"] }}</td>
                                 <td class="text-center">{{ maintenance.equipment["equipment_location"] }}</td>
                                 <td class="text-center">{{ maintenance.schedule_date }}</td>
+                                <td class="text-center">{{ maintenance.status }}</td>
                                 <td class="text-center">
                                     <router-link class="btn btn btn-success" :to="{ name: 'startMaintenance', params: {id: maintenance['_id']} }" style="text-decoration:none">
                                         <v-btn class="btn btn-success">View</v-btn>
@@ -57,12 +61,24 @@ export default {
         }
     },
     async mounted() {
-        // let user_id = sessionStorage.getItem('userId')
-        let user_id = '6421c02771a20121b7371d0f'
+        let user_id = localStorage.userId
 
         let maintenance_result = await axios.get(`${maintenanceURL}/technician/${user_id}`)
 
-        this.maintenance_arr = maintenance_result.data.data
+        let temp_result_arr = maintenance_result.data.data
+        let temp_maintenance_arr = []
+
+        for (let maintenance of temp_result_arr) {
+            console.log(maintenance)
+
+            if (maintenance.status != "COMPLETE - SUCCESSFUL" && maintenance.status != "COMPLETE - UNSUCCESSFUL") {
+                temp_maintenance_arr.push(maintenance)
+            }
+        }
+
+        temp_maintenance_arr.sort((a, b) => (a.schedule_date > b.schedule_date ? 1:-1 ))
+
+        this.maintenance_arr = temp_maintenance_arr
     }
 }
 
