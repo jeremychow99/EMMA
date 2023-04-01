@@ -14,9 +14,9 @@ CORS(app)
 # equipmentAPI = 'http://127.0.0.1:4999/equipment'
 # inventoryAPI = 'http://127.0.0.1:5001/inventory'
 
-maintenanceAPI = 'http://host.docker.internal:5000/maintenance'
-equipmentAPI = 'http://host.docker.internal:4999/equipment'
-inventoryAPI = 'http://host.docker.internal:5001/inventory'
+maintenanceAPI = 'http://maintenance:5000/maintenance'
+equipmentAPI = 'http://equipment:4999/equipment'
+inventoryAPI = 'http://inventory:5001/inventory'
 
 
 

@@ -398,10 +398,18 @@ export default {
 },
 
   async mounted() {
-        let eqp_result = await axios.get(equipmentURL)
+        let eqp_result = await axios.get(equipmentURL, {headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                        Authorization: "Bearer " + localStorage.token,
+                    }})
         this.equipment_arr = eqp_result.data.data.equipment
 
-        let mtn_result = await axios.get(maintenanceURL)
+        let mtn_result = await axios.get(maintenanceURL, {headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                        Authorization: "Bearer " + localStorage.token,
+                    }})
         this.maintenance_arr = mtn_result.data.data.maintenance
 
         this.updateEquipmentStatus()

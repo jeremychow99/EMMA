@@ -41,29 +41,12 @@ export default {
       localStorage.clear();
       console.log(localStorage.token);
     },
-    test() {
-      axios
-        .get("http://localhost:8000/api/v1/equipment", {
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            Authorization: "Bearer " + localStorage.token,
-          },
-        })
-        .then((response) => {
-          console.log(response);
-        })
-        .catch((err) => {
-          console.log("ERROR" + err.message);
-        });
-    },
     login() {
-      // if auth store jwt, go to main screen
       console.log("login invoked");
       console.log(this.password);
       axios
         .post(
-          "http://localhost:3001/login",
+          "http://localhost:8000/api/v1/login",
           {
             name: this.username,
             password: this.password,
