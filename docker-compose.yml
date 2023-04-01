@@ -32,8 +32,7 @@ services:
       context: ./maintenance
       dockerfile: Dockerfile
     restart: on-failure
-    ports:
-    - "5000:5000"
+
     container_name: maintenance
 
   equipment:
@@ -43,8 +42,7 @@ services:
       context: ./equipment
       dockerfile: Dockerfile
     restart: on-failure
-    ports:
-      - "4999:4999"
+
     container_name: equipment
 
   email:
@@ -67,7 +65,7 @@ services:
     # networks:
     #   - test-net
     ports:
-      - "5672:5672"
+      # - "5672:5672"
       - "15672:15672"
     # networks:
     #   - test-net
@@ -82,8 +80,7 @@ services:
     depends_on:
       - rabbitmq
     restart: on-failure
-    ports:
-      - "4000:4000"
+
     # networks:
     #   - test-net
     container_name: testSend
@@ -93,8 +90,7 @@ services:
       context: ./login
       dockerfile: Dockerfile
     restart: on-failure
-    ports:
-      - "3001:3001"
+
     container_name: login
     env_file:
       - ./login/utils/login.env
@@ -108,8 +104,7 @@ services:
     restart: always
     depends_on:
       - rabbitmq
-    ports:
-      - "5001:5001"
+
     # environment:
     #   rabbit_host: rabbitmq
     #   rabbit_port: 5672
@@ -120,8 +115,7 @@ services:
       context: ./autoMaintenance
       dockerfile: Dockerfile
     restart: on-failure
-    ports:
-      - "4001:4001"
+
     container_name: automaintenance
 
   maintenance_controller:
@@ -131,8 +125,7 @@ services:
     restart: always
     depends_on: 
       - rabbitmq
-    ports:
-      - "8080:8080"
+
     container_name: maintenance_controller
 
 
