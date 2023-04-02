@@ -23,7 +23,7 @@ func runCronJobs() {
 
 	s.Start()
     mux := http.NewServeMux()
-	mux.HandleFunc("/", home)
+	mux.HandleFunc("/home", home)
 	mux.HandleFunc("/mockIOT", testFunc)
 
 	log.Println("Starting server on :4001")
