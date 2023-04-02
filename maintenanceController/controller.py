@@ -234,7 +234,7 @@ def endMaintenance(maintenance_id):
     description = data["description"]
     part_list = data["partlist"]
     return_parts = data["return_partlist"]
-    eqp_status = "No maintenance required" if maintenance_status == "COMPLETE - SUCCESSFUL" else "Maintenance required"
+    eqp_status = "Healthy" if maintenance_status == "COMPLETE - SUCCESSFUL" else "Unhealthy"
 
 
     return_parts_dict = {}
