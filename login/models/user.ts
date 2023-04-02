@@ -14,7 +14,7 @@ const UserSchema: mongoose.Schema = new mongoose.Schema({
     email: {type: String},
 });
 
-const iss = "test123";
+const iss = "29eZoTQsLaDoPmHnQ3Pjs629KJ88IiYF";
 
 UserSchema.pre('save', async function () {
     const salt = await bcrypt.genSalt(10);
