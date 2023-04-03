@@ -96,6 +96,9 @@
         <v-row>
           <v-col>
             <h3>Unused Parts</h3>
+            <!-- <div>
+              {{ unusedPartList }}
+            </div> -->
           </v-col>
         </v-row>
 
@@ -116,7 +119,7 @@
                 </td>
                 <td>
                   <input
-                    type="text"
+                    type="number"
                     :id="parts['_id']"
                     :name="parts.PartName"
                     value="0"
@@ -438,7 +441,7 @@ export default {
         console.log("Added Parts");
         temp_part_list.push(partObj);
       } else {
-        temp_part_list[part_idx]["Qty"] = reserve_qty;
+        temp_part_list[part_idx]["Qty"] = unused_qty;
       }
 
       this.unusedPartList = temp_part_list;

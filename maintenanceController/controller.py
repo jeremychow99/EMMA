@@ -241,12 +241,22 @@ def endMaintenance(maintenance_id):
     for part in return_parts:
         return_parts_dict[part['_id']] = part['Qty']
 
+    
+    final_partlist = []
 
     # Tabulate parts used
     for part in part_list:
         if part['_id'] in return_parts_dict:
             part['Qty'] = int(part['Qty']) - int(return_parts_dict[part['_id']])
-            part['Qty'] = str(part['Qty'])
+
+            # Part has been used despite returns
+            if part['Qty'] != 0:
+                part['Qty'] = str(part['Qty'])
+                final_partlist.append(part)
+        
+        else:
+            final_partlist.append(part)
+
 
     eqp_data = {
         "equipment_status": eqp_status,
@@ -257,7 +267,7 @@ def endMaintenance(maintenance_id):
         "end_datetime": end_datetime,
         "status": maintenance_status,
         "description": description,
-        "partlist": part_list
+        "partlist": final_partlist
     }
 
     maintenance_result = requests.request('PUT', f'{maintenanceAPI}/{maintenance_id}', json = maintenance_data).json()
