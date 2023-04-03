@@ -85,12 +85,13 @@ def reserve_parts():
                 # If no, determine missing quantity and trigger procurement process (triggers notification microservice)
                 available_quantity = part['Qty']
                 missing_quantity = req_quantity - available_quantity
-                collection.update_one({'_id': req_part_id}, {'$set': {'Qty': 0}})
-                res_part_list.append({
-                    "PartName" : req_partname,
-                    "Qty": req_quantity,
-                    "_id": str(req_part_id)
-                    })
+                if available_quantity != 0:
+                    collection.update_one({'_id': req_part_id}, {'$set': {'Qty': 0}})
+                    res_part_list.append({
+                        "PartName" : req_partname,
+                        "Qty": available_quantity,
+                        "_id": str(req_part_id)
+                        })
                 procurement_part_list.append({
                     "PartName" : req_partname,
                     "Qty": missing_quantity,

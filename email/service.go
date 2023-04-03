@@ -40,7 +40,7 @@ func sendMaintenanceEmail(email MaintenanceMessage) {
 
 func sendProcurementEmail(email ProcurementMessage) {
 	from := mail.NewEmail("Jeremy Chow", os.Getenv("SENDER_EMAIL"))
-	subject := "Maintenance Scheduled"
+	subject := "Part Procurement Request"
 	to := mail.NewEmail("Procurement Manager", "sclim.2021@scis.smu.edu.sg")
 	plainTextContent := "Dear Procurement Manager, we would like to request for the following parts: \n"
 	htmlContent := "Dear Procurement Manager, we would like to request for the following parts: " + "<br>"

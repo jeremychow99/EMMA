@@ -160,7 +160,7 @@ def requestParts(maintenance_id):
     
     if type(result) != str:
         reserved_list, missing_list = result
-        print("Successfully Reserved Parts: ",reserved_list)
+        print("Successfully Reserved Parts: ",reserved_list, flush=True)
         print("Missing Parts: ",missing_list)
 
         additional_parts_dict = {}
