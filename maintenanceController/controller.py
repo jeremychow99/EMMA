@@ -40,15 +40,18 @@ def scheduleMaintenance():
     # 1. Reserve Parts (HTTP)
     print("List of parts to reserve: ", requested_parts)
     print("Attempting to reserve parts...")
-    result = reserveParts(requested_parts)
+
+    if len(requested_parts) != 0:
+        result = reserveParts(requested_parts)
 
     if type(result) != str:
         print("Parts reserved...")
-        reserved_list, missing_list = result
+
+        if len(requested_parts) != 0:
+            reserved_list, missing_list = result
+            data.update({'partlist': reserved_list})
 
         # 2. Create Maintenance Record
-        data.update({'partlist': reserved_list})
-
         print("Creating maintenance record...")
         maintenance_result = requests.request('POST', maintenanceAPI, json = data).json()
         maintenance_code = maintenance_result['code']
