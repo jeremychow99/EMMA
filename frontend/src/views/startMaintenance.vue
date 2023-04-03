@@ -104,18 +104,24 @@
             <thead>
               <tr>
                 <th class="text-left">Part Name</th>
-                <th class="text-left">Qty</th>
+                <th class="text-left">Qty Reserved</th>
+                <th class="text-left">Qty Unused</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="parts in selectedRecord.partlist" :key="parts">
                 <td>{{ parts.PartName }}</td>
                 <td>
+                  {{ parts.Qty }}
+                </td>
+                <td>
                   <input
                     type="text"
                     :id="parts['_id']"
                     :name="parts.PartName"
+                    value="0"
                     placeholder="Number of unused parts"
+                    style="border: 1px solid grey; text-align: center; width: 100px"
                     @change="update_unused_partlist_array($event.currentTarget)"
                   />
                 </td>
@@ -438,18 +444,18 @@ export default {
       this.unusedPartList = temp_part_list;
     },
 
-        async end_of_maintenance(){
-            console.log("=== START end_of_maintenance ===")
+    async end_of_maintenance(){
+      console.log("=== START end_of_maintenance ===")
 
-            var now = this.current_date
-            now.setHours(now.getHours() + 8.5);
-            now = now.toISOString()
+      var now = this.current_date
+      now.setHours(now.getHours() + 8.5);
+      now = now.toISOString()
 
-            var datetime_arr = now.split("T");
-            var date = datetime_arr[0]
-            var time = datetime_arr[1]
-            var date_arr = date.split("-")
-            var time_arr = time.split(":")
+      var datetime_arr = now.split("T");
+      var date = datetime_arr[0]
+      var time = datetime_arr[1]
+      var date_arr = date.split("-")
+      var time_arr = time.split(":")
 
       var month = date_arr[1];
       var day = date_arr[2];
@@ -466,7 +472,8 @@ export default {
         day + "-" + month + "-" + year + " " + hour + ":" + minute + ":00";
       console.log(formatted_datetime);
 
-      let data = {
+      if (this.status != "") {
+        let data = {
         equipment: this.selectedRecord.equipment,
         schedule_date: this.selectedRecord.schedule_date,
         start_datetime: this.selectedRecord.equipment.start_datetime,
@@ -497,6 +504,10 @@ export default {
         .catch((error) => {
           console.error(error);
         });
+      } else {
+        alert("Please select a status!")
+      }
+
     },
   },
 
