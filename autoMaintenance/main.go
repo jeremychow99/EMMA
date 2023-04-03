@@ -5,7 +5,6 @@ import (
 	"os"
 	"net/http"
 
-	"gopkg.in/robfig/cron.v2"
 )
 
 
@@ -16,15 +15,10 @@ func init() {
     os.Setenv("TZ", "Asia/Singapore")
 }
 
-func runCronJobs() {
-	s := cron.New()
-
-	// s.AddFunc("@every 10s", checkEquipment)	
-
-	s.Start()
+func runServer() {
     mux := http.NewServeMux()
 	mux.HandleFunc("/home", home)
-	mux.HandleFunc("/mockIOT", testFunc)
+	mux.HandleFunc("/mockIOT", autoSchedule)
 
 	log.Println("Starting server on :4001")
 	err := http.ListenAndServe(":4001", mux)
@@ -32,5 +26,5 @@ func runCronJobs() {
 }
 
 func main() {
-	runCronJobs()
+	runServer()
 }

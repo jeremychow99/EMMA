@@ -8,40 +8,50 @@
 
   <!-- 1st Row of Content -->
   <v-container>
-    <div class="text-h6">Equipment Overview</div>
-    <v-table
-    fixed-header
-    height="300px"
-    >
-      <thead>
-        <tr>
-          <th class="text-left">
-            ID
-          </th>
-          <th class="text-left">
-            Name
-          </th>
-          <th class="text-left">
-            Location
-          </th>
-          <th class="text-left">
-            Status
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="eqp in equipment_arr"
-          :key="eqp['_id']"
-        >
-          <td>{{ eqp._id }}</td>
-          <td>{{ eqp.equipment_name }}</td>
-          <td>{{ eqp.equipment_location }}</td>
-          <td>{{ eqp.equipment_status }}</td>
-        </tr>
-      </tbody>
-    </v-table>
-  
+    <div v-if="upcomingExists">
+        <div class="text-h6 mx-3">Upcoming Maintenance</div>
+            <v-table
+            fixed-header
+            height="320px"
+            >
+              <thead>
+                <tr>
+                  <th class="text-left">
+                    Maintenance ID
+                  </th>
+                  <th class="text-left">
+                    Equipment Name
+                  </th>
+                  <th class="text-left">
+                    Scheduled Date
+                  </th>
+                  <th class="text-left">
+                    Status
+                  </th>
+                  <!-- <th class="text-left">
+                    Technician ID
+                  </th> -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="mtn in upcomingMtn_arr"
+                  :key="mtn['_id']"
+                >
+                  <td>{{ mtn._id }}</td>
+                  <td>{{ mtn.equipment.equipment_name }}</td>
+                  <td>{{ mtn.schedule_date }}</td>
+                  <td>{{ mtn.status }}</td>
+                  <!-- <td>{{ mtn.technician_id }}</td> -->
+                </tr>
+              </tbody>
+            </v-table>
+        </div>
+        <!-- If no upcoming maintenance -->
+        <div v-else>
+          <p class="text-h4 font-weight-bold text-red-darken-3 px-10 py-16">No Upcoming Maintenance!</p>
+        </div>
+     
   </v-container>
 
   <!-- 2nd Row of Content -->
@@ -114,49 +124,40 @@
 
       <v-col cols="9">
       <!-- Maintenance Table -->
-      <div v-if="upcomingExists">
-        <div class="text-h6 mx-3">Upcoming Maintenance</div>
-            <v-table
-            fixed-header
-            height="320px"
-            >
-              <thead>
-                <tr>
-                  <th class="text-left">
-                    Maintenance ID
-                  </th>
-                  <th class="text-left">
-                    Equipment Name
-                  </th>
-                  <th class="text-left">
-                    Scheduled Date
-                  </th>
-                  <th class="text-left">
-                    Status
-                  </th>
-                  <!-- <th class="text-left">
-                    Technician ID
-                  </th> -->
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="mtn in upcomingMtn_arr"
-                  :key="mtn['_id']"
-                >
-                  <td>{{ mtn._id }}</td>
-                  <td>{{ mtn.equipment.equipment_name }}</td>
-                  <td>{{ mtn.schedule_date }}</td>
-                  <td>{{ mtn.status }}</td>
-                  <!-- <td>{{ mtn.technician_id }}</td> -->
-                </tr>
-              </tbody>
-            </v-table>
-        </div>
-        <!-- If no upcoming maintenance -->
-        <div v-else>
-          <p class="text-h4 font-weight-bold text-red-darken-3 px-10 py-16">No Upcoming Maintenance!</p>
-        </div>
+      <div class="text-h6">Equipment Overview</div>
+    <v-table
+    fixed-header
+    height="300px"
+    >
+      <thead>
+        <tr>
+          <th class="text-left">
+            ID
+          </th>
+          <th class="text-left">
+            Name
+          </th>
+          <th class="text-left">
+            Location
+          </th>
+          <th class="text-left">
+            Status
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="eqp in equipment_arr"
+          :key="eqp['_id']"
+        >
+          <td>{{ eqp._id }}</td>
+          <td>{{ eqp.equipment_name }}</td>
+          <td>{{ eqp.equipment_location }}</td>
+          <td>{{ eqp.equipment_status }}</td>
+        </tr>
+      </tbody>
+    </v-table>
+  
       </v-col>
     </v-row>
     <v-divider class="mt-5" :thickness="3"></v-divider>
@@ -398,6 +399,7 @@ export default {
 },
 
   async mounted() {
+        console.log("mounting")
         let eqp_result = await axios.get(equipmentURL, {headers: {
                         "Content-Type": "application/json",
                         "Access-Control-Allow-Origin": "*",

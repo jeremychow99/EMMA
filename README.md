@@ -27,16 +27,16 @@ Equipment Maintenance Management Automation, or EMMA, seeks to streamline the pr
 #### API Gateway
 - Kong
 
-Backend
+#### Backend
 - Python, Flask
 - Node.js, Express with TypeScript
 - Golang
 
-Interprocess Communication
+#### Interprocess Communication
 - REST
 - AMQP (RabbitMQ)
 
-External APIs
+#### External APIs
 - Twilio
 - SendGrid
 

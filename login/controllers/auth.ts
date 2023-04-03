@@ -5,7 +5,7 @@ import UnauthenticatedError from '../errors/unauthenticated';
 import ResourceAlreadyExistsError from '../errors/alreadyExists';
 
 const register = async (req: Request, res: Response) => {
-  const { name, password } = req.body
+  const { name, password, email, phone, role } = req.body
   if (name.length < 6 || password.length < 6) {
     throw new Error("Both Name and Password must be at least 6 characters long")
   }

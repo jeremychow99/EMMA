@@ -12,14 +12,16 @@
           <div>
             <v-form fast-fail @submit.prevent="login" style="width: 500px;">
               <v-text-field v-model="username" label="User Name" style="background-color: white;" ></v-text-field>
-              <v-text-field v-model="password" label="Password" style="background-color: white;"></v-text-field>
+              <v-text-field type="password" v-model="password" label="Password" style="background-color: white;"></v-text-field>
 
               <v-btn type="submit" block class="mt-2">Sign in</v-btn>
             </v-form>
             <div class="mt-2">
-              <p class="text-body-2">
-                Don't have an account? <a href="#">Sign Up</a>
-              </p>
+                <p class="text-body-2">
+                  Don't have an account? <router-link :to="{
+                    name: 'signup',
+                  }">Signup</router-link>
+                </p>
             </div>
           </div>
         </v-row>
@@ -78,6 +80,7 @@ export default {
         })
         .catch((err) => {
           console.log("ERROR" + err.message);
+          alert("ERROR: could not login!")
         });
     },
   },

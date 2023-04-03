@@ -8,6 +8,7 @@ import dashboard from "../views/dashboard.vue";
 import equipment from "../views/equipment.vue";
 import techDashboard from "../views/maintenanceDashboard.vue";
 import inventory from "../views/inventory.vue";
+import signup from "../components/signup.vue"
 
 const routes = [
     {
@@ -49,6 +50,11 @@ const routes = [
         path: "/inventory",
         name: "inventory",
         component: inventory
+    },
+    {
+        path: "/signup",
+        name: "signup",
+        component: signup
     }
 ]
 
@@ -59,7 +65,7 @@ const router = createRouter({
 });
 
 router.beforeEach( async (to, from) => {
-    if(localStorage.token == null && to.name !== 'login'){
+    if(localStorage.token == null && to.name !== 'login' && to.name !== 'signup'){
         return { name: 'login'}
     }
 })

@@ -92,7 +92,7 @@ func getTechnicians() []User {
 	return technicians
 }
 
-func testFunc(rw http.ResponseWriter, req *http.Request) {
+func autoSchedule(rw http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		rw.WriteHeader(405)
 		rw.Write([]byte("Only POST Method Allowed"))
