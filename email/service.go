@@ -66,7 +66,7 @@ func sendProcurementEmail(email ProcurementMessage) {
 func sendStartEmail(msg StartMessage) {
 	from := mail.NewEmail("Jeremy Chow", os.Getenv("SENDER_EMAIL"))
 	subject := "Maintenance Started"
-	to := mail.NewEmail("Procurement Manager", "xelloxzxd@gmail.com")
+	to := mail.NewEmail("Admin", "xelloxzxd@gmail.com")
 	plainTextContent := "Dear Admin,\n\n Maintenance for the following equipment has been started.\n " + 
 	"Equipment ID: " + msg.Equipment.EquipmentID + "\n" +
 	"Equipment Name: "  + msg.Equipment.EquipmentName + "\n" +
@@ -92,11 +92,26 @@ func sendStartEmail(msg StartMessage) {
 
 func sendEndEmail(msg EndMessage) {
 	from := mail.NewEmail("Jeremy Chow", os.Getenv("SENDER_EMAIL"))
-	subject := "Maintenance Started"
+	subject := "Maintenance Ended"
 	to := mail.NewEmail("Procurement Manager", "xelloxzxd@gmail.com")
 	
-	plainTextContent := ""
-	htmlContent := ""
+	plainTextContent := "Dear Admin,\n\n Maintenance for the following equipment has been ended.\n " +
+	"Equipment ID: " + msg.Equipment.EquipmentID + "\n" +
+	"Equipment Name: "  + msg.Equipment.EquipmentName + "\n" +
+	"End Time: "  + msg.EndDatetime + "\n" +
+	"Used Parts: \n"
+	
+	for i := range msg.Partlist {
+		plainTextContent +=msg.Partlist[i].PartName + ": " + strconv.Itoa(msg.Partlist[i].Qty) + " \n"
+	}
+	htmlContent := "Dear Admin,<br><br> Maintenance for the following equipment has been ended.<br>" +
+	"Equipment ID: " + msg.Equipment.EquipmentID + "<br>" +
+	"Equipment Name: "  + msg.Equipment.EquipmentName + "<br>" +
+	"End Time: "  + msg.EndDatetime + "<br>" +
+	"Used Parts: <br>"
+	for i := range msg.Partlist {
+		htmlContent +=msg.Partlist[i].PartName + ": " + strconv.Itoa(msg.Partlist[i].Qty) + " <br>"
+	}
 
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
 	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))

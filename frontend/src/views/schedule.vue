@@ -61,7 +61,7 @@
               "
             >
               <option value="" disabled selected>Select your option</option>
-              <option v-for="tech in technician_arr" :value="tech['_id']">
+              <option v-for="tech in availableTechnicians" :value="tech['_id']">
                 {{ tech.name }}
               </option>
             </select>
@@ -85,8 +85,8 @@
 
     <!-- Testing Purpose -->
     <!-- <div>
-            {{ selected_technician }}
-        </div> -->
+      {{ availableTechnicians }}
+    </div> -->
 
     <v-tabs class="mx-auto mt-3" align-tabs="center" v-model="tab">
       <v-tab value="equipment"> Equipment </v-tab>
@@ -191,12 +191,7 @@
 
 <script>
 import navbar from "../components/navbar.vue";
-import {
-  equipmentURL,
-  inventoryURL,
-  maintenanceURL,
-  userURL,
-} from "../../api";
+import { equipmentURL, inventoryURL, maintenanceURL, userURL } from "../../api";
 import axios from "axios";
 
 export default {

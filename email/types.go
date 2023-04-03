@@ -35,7 +35,7 @@ type StartMessage struct {
 type EndMessage struct {
 	Equipment         Equipment `json:"equipment"`
 	ScheduleDate      string    `json:"schedule_date"`
-	Partlist          []any     `json:"partlist"`
+	Partlist          []Part     `json:"partlist"`
 	ReturnPartlist    []any     `json:"return_partlist"`
 	EndDatetime       string    `json:"end_datetime"`
 	Description       string    `json:"description"`

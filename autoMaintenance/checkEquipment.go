@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
 )
 
 type alias struct {
@@ -117,24 +116,22 @@ func autoSchedule(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	e.EquipmentStatus = "Down"
-	jsonData, err := json.Marshal(e)
+	a2 := e.Convert()
+	jsonData, err := json.Marshal(a2)
 	if err != nil {
 		log.Fatal(err)
 	}
-	resp, err := http.Post("http://equipment:4999/equipment/"+eqpID,
-		"application/json",
-		bytes.NewBuffer(jsonData))
+	client := &http.Client{}
+	putReq, err := http.NewRequest(http.MethodPut, "http://equipment:4999/equipment/"+eqpID, bytes.NewBuffer(jsonData))
+	putReq.Header.Set("Content-Type", "application/json")
 	if err != nil {
 		log.Fatal(err)
-		rw.Header().Set("Content-Type", "application/json")
-		rw.WriteHeader(500)
-		resp := []byte(`{"msg": "Error updating equipment status"}`)
-		rw.Write(resp)
-		return
 	}
-	var res map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&res)
-	fmt.Println(res["json"])
+	resp, err := client.Do(putReq)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(resp)
 
 	maintenances := getMaintenancesForEqp(eqpID)
 	fmt.Println("===============")
@@ -158,32 +155,38 @@ func autoSchedule(rw http.ResponseWriter, req *http.Request) {
 			rw.WriteHeader(403)
 			resp := []byte(`{"msg": "Equipment has a scheduled Maintenanace which is earlier than the next available auto-scheduled date."}`)
 			rw.Write(resp)
-			break
+			return
 		}
 		// invoke api to check , if code = 404
 
 		availList := getTechnicians()
 		busyTechs := getBusyTechs(dateStr)
+		fmt.Println(len(availList))
+		fmt.Println(busyTechs)
 		// remove technician from available list
+		var s []User
 		for i := range availList {
-			if contains(busyTechs, availList[i].ID) {
-				availList = append(availList[:i], availList[i+1:]...)
+			fmt.Println("looping")
+			if !contains(busyTechs, availList[i].ID) {
+				s = append(s, availList[i])
 			}
 		}
 
-		if len(availList) > 0 {
+		if len(s) > 0 {
 			// invoke maintenance controller to schedule maintenance
 			testarr := []string{}
 			e := e.Convert()
+			fmt.Println("ID FOR EQP BELOW")
+			fmt.Println(e)
 			var st SubmitTechnician
-			st.ID, st.Name, st.Phone = availList[0].ID, availList[0].Name, availList[0].Phone
+			st.ID, st.Name, st.Phone = s[0].ID, s[0].Name, s[0].Phone
 			details := map[string]interface{}{"equipment": e, "schedule_date": dateStr, "partlist": testarr, "technician": st}
 			jsonData, err := json.Marshal(details)
 			fmt.Println(details)
 			if err != nil {
 				fmt.Println(err)
 			}
-			resp, err := http.Post("http://maintenance_controller/schedule_maintenance",
+			resp, err := http.Post("http://maintenance_controller:8080/schedule_maintenance",
 				"application/json",
 				bytes.NewBuffer(jsonData))
 			if err != nil {
@@ -191,7 +194,7 @@ func autoSchedule(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			rw.Header().Set("Content-Type", "application/json")
-			rw.WriteHeader(403)
+			rw.WriteHeader(201)
 			jsonResp := []byte(`{"msg": "Successfully scheduled a Maintenance for Equipment."}`)
 			rw.Write(jsonResp)
 

@@ -43,6 +43,8 @@ def scheduleMaintenance():
 
     if len(requested_parts) != 0:
         result = reserveParts(requested_parts)
+    else:
+        result = None
 
     if type(result) != str:
         print("Parts reserved...")
