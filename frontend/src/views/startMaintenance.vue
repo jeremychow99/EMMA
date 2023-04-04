@@ -4,7 +4,7 @@
   <v-container>
     <v-row>
       <v-col cols="4">          
-        <v-btn style="background-color: grey; color: white; margin-right: 10px;" @click="$router.go(-1)">
+        <v-btn style="background-color: #d3d3d3; color: black;; margin-right: 10px;" @click="$router.go(-1)">
         &lt;
         </v-btn>
         </v-col>
