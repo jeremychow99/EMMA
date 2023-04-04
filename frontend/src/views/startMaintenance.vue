@@ -3,11 +3,15 @@
 
   <v-container>
     <v-row>
-      <v-col cols="4"></v-col>
+      <v-col cols="4">          
+        <v-btn style="background-color: grey; color: white; margin-right: 10px;" @click="$router.go(-1)">
+        &lt;
+        </v-btn>
+        </v-col>
       <v-col cols="4">
         <h1 class="text-start mt-3">View Maintenance</h1>
       </v-col>
-      <v-col cols="4"> </v-col>
+      <v-col cols="4"></v-col>
     </v-row>
 
     <v-container class="d-flex justify-center">
