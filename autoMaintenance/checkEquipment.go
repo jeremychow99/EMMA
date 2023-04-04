@@ -153,7 +153,7 @@ func autoSchedule(rw http.ResponseWriter, req *http.Request) {
 			fmt.Println("Abort Scheduling due to earlier date existing")
 			rw.Header().Set("Content-Type", "application/json")
 			rw.WriteHeader(403)
-			resp := []byte(`{"msg": "Equipment has a scheduled Maintenanace which is earlier than the next available auto-scheduled date."}`)
+			resp := []byte(`{"msg": "Equipment has a scheduled Maintenance which is earlier than the next available auto-scheduled date."}`)
 			rw.Write(resp)
 			return
 		}

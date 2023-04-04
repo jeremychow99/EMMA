@@ -14,7 +14,7 @@ func SendMessage(sms *MaintenanceSMS) {
 	// toNum := "+65" + strconv.Itoa(sms.Technician.Phone)
 
 	from := os.Getenv("TWILIO_FROM_PHONE_NUMBER")
-	to := os.Getenv("TWILIO_TO_PHONE_NUBMER")
+	to := os.Getenv("TWILIO_TO_PHONE_NUMBER")
 	// to := toNum
 
 	fmt.Println(sms.Technician.Name)
