@@ -6,7 +6,7 @@
   <!-- <h3 align="center">Best-README-Template</h3> -->
 
   <p align="center">
-    Project codebase for IS213 ESD - G4T7
+    Project codebase for IS213 ESD - G4T7 (AY22/23)
     <br />
 
   </p>
@@ -29,7 +29,7 @@ Equipment Maintenance Management Automation, or EMMA, seeks to streamline the pr
 
 #### Backend
 - Python, Flask
-- Node.js, Express with TypeScript
+- TypeScript, Express
 - Golang
 
 #### Interprocess Communication
