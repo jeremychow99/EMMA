@@ -43,63 +43,61 @@ def scheduleMaintenance():
 
     if len(requested_parts) != 0:
         result = reserveParts(requested_parts)
-    else:
-        result = None
+        
+        if type(result) != str:
+            print("Parts reserved...")
 
-    if type(result) != str:
-        print("Parts reserved...")
-
-        if len(requested_parts) != 0:
             reserved_list, missing_list = result
             data.update({'partlist': reserved_list})
-
-        # 2. Create Maintenance Record
-        print("Creating maintenance record...")
-        maintenance_result = requests.request('POST', maintenanceAPI, json = data).json()
-        maintenance_code = maintenance_result['code']
-
-        amqp_setup.check_setup()
-
-        # Successfully scheduled maintenance
-        if maintenance_code == 201:
-
-            # 3. Order Parts
-            if len(missing_list):
-                print("Ordering missing parts...")
-                orderParts(missing_list)
-
-            # 4. Send out Notification
-            print("Sending Notification...")
-            amqp_setup.channel.basic_publish(
-                exchange=amqp_setup.exchangename, 
-                routing_key="schedule.maintenance", 
-                body=json.dumps(data), 
-                properties=pika.BasicProperties(delivery_mode = 2)
-            )
- 
-            print("Completed operations")
-            return jsonify({
-                "code": maintenance_code,
-                "message": f"Maintenance for {eqp_name} has been scheduled on {schedule_date}"
-            }), maintenance_code
-        
-        # Maintenance record already exist
-        elif maintenance_code == 400:
             
-            # Return reserved parts (RabbitMQ)
-            print("Returning reserved parts...")
-            returnParts(reserved_list)
 
-            return jsonify({
-                "code": maintenance_code,
-                "message": "Maintenance record already exists"
-            })
+    # 2. Create Maintenance Record
+    print("Creating maintenance record...")
+    maintenance_result = requests.request('POST', maintenanceAPI, json = data).json()
+    maintenance_code = maintenance_result['code']
+
+    amqp_setup.check_setup()
+
+    # Successfully scheduled maintenance
+    if maintenance_code == 201:
+
+        # 3. Order Parts
+        if len(requested_parts) != 0 and len(missing_list):
+            print("Ordering missing parts...")
+            orderParts(missing_list)
+
+        # 4. Send out Notification
+        print("Sending Notification...")
+        amqp_setup.channel.basic_publish(
+            exchange=amqp_setup.exchangename, 
+            routing_key="schedule.maintenance", 
+            body=json.dumps(data), 
+            properties=pika.BasicProperties(delivery_mode = 2)
+        )
+
+        print("Completed operations")
+        return jsonify({
+            "code": maintenance_code,
+            "message": f"Maintenance for {eqp_name} has been scheduled on {schedule_date}"
+        }), maintenance_code
+    
+    # Maintenance record already exist
+    elif maintenance_code == 400:
         
-        else:
-            return jsonify({
-                "code": maintenance_code,
-                "message": maintenance_result['message']
-            })
+        # Return reserved parts (RabbitMQ)
+        print("Returning reserved parts...")
+        returnParts(reserved_list)
+
+        return jsonify({
+            "code": maintenance_code,
+            "message": "Maintenance record already exists"
+        })
+    
+    else:
+        return jsonify({
+            "code": maintenance_code,
+            "message": maintenance_result['message']
+        })
 
 
 

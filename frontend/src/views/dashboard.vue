@@ -35,7 +35,7 @@
     </div>
     <!-- If no upcoming maintenance -->
     <div v-else>
-      <p class="text-h4 font-weight-bold text-red-darken-3 px-10 py-16">
+      <p class="text-h4 font-weight-bold text-red-darken-3 px-10 py-16 text-center">
         No Upcoming Maintenance!
       </p>
     </div>
@@ -280,23 +280,28 @@ export default {
     },
 
     checkUpcomingMaintenance() {
-      // console.log(this.maintenance_arr)
-
+      console.log(this.maintenance_arr)
+      console.log("Checking Upcoming Maintenance")
       var todayDate = new Date();
       var todayTime = todayDate.getTime();
       // console.log(todayDate.getTime());
 
       // Loop through each maintenance record, check if scheduled date has already passed
       this.maintenance_arr.forEach((mtn) => {
+        // console.log(mtn.schedule_date)
         if (mtn.schedule_date) {
           // console.log(mtn.schedule_date)
           var mtnTime = this.convertMtnDate(mtn.schedule_date);
+          // console.log(mtnTime)
           if (mtnTime >= todayTime) {
             this.upcomingExists = true;
             this.upcomingMtn_arr.push(mtn);
           }
         }
       });
+
+      this.upcomingMtn_arr.sort((a, b) => a.schedule_date > b.schedule_date ? 1 : -1);
+
     },
 
     populateBarChart() {
@@ -462,7 +467,8 @@ export default {
         },
       })
       .then((response) => {
-        if (response) console.log(response.data.data);
+        if (response) console.log(response.data.data.maintenance);
+        this.maintenance_arr = response.data.data.maintenance
       })
       .catch((error) => {
         if (error.response) {
