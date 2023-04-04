@@ -16,6 +16,7 @@
             <th class="text-left">Maintenance ID</th>
             <th class="text-left">Equipment Name</th>
             <th class="text-left">Scheduled Date</th>
+            <th class="text-left">Technician</th>
             <th class="text-left">Status</th>
             <!-- <th class="text-left">
                     Technician ID
@@ -27,6 +28,7 @@
             <td>{{ mtn._id }}</td>
             <td>{{ mtn.equipment.equipment_name }}</td>
             <td>{{ mtn.schedule_date }}</td>
+            <td>{{ mtn.technician.name}}</td>
             <td>{{ mtn.status }}</td>
             <!-- <td>{{ mtn.technician_id }}</td> -->
           </tr>
