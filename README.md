@@ -18,6 +18,9 @@ In recent years, many companies have opted to pursue digital transformation in o
 
 Equipment Maintenance Management Automation, or EMMA, seeks to streamline the process of managing and scheduling equipment maintanences by providing a platform to keep track of maintenance, equipment and inventory details. It can also integrate with IoT sensors to auto-schedule maintenance.
 
+## Technical Diagram
+ <img src="images/diagram.png" alt="Diagram">
+
 ## Built With
 
 #### Frontend

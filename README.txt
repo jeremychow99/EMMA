@@ -45,4 +45,24 @@ run the following to rebuild all images:
 3. Launch application 
 run `npm run dev`
 
-3. Access application in browser (default is port 5173)
+4. Access application in browser (default is port 5173)
+
+
+
+REGARDING USER CREDENTIALS:
+
+The following Admin account is available by default:
+name: admin1
+password: admin1
+
+The following Technician accounts are available:
+1. name: jeremy
+password: jeremy
+
+2. name: peopleschoice
+password: peopleschoice
+
+YOU MAY CREATE ADDITIONAL ACCOUNTS VIA USERS/AUTH MICROSERVICE: http://localhost:8000/api/v1/register
+Refer to Auth/User MS API Docs for details and required JSON Body fields.
+You may also create TECHNICIAN accounts via the frontend signup page on the application.
+(ADMIN ROLE accounts can only be created via the API and not on frontend)
