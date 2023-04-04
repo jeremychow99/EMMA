@@ -75,17 +75,6 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  # testsend:
-  #   build:
-  #     context: ./rmqTestSend
-  #     dockerfile: Dockerfile
-  #   depends_on:
-  #     - rabbitmq
-  #   restart: on-failure
-
-  #   # networks:
-  #   #   - test-net
-  #   container_name: testSend
 
   login:
     build:
