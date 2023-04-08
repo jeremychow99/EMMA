@@ -9,11 +9,6 @@ type MaintenanceData struct {
 	Maintenances []Maintenance `json:"maintenance"`
 }
 
-type Equipment1 struct {
-	EquipmentID       string `json:"equipment_id"`
-	EquipmentLocation string `json:"equipment_location"`
-	EquipmentName     string `json:"equipment_name"`
-}
 type Partlist struct {
 	PartName string `json:"PartName"`
 	Qty      int    `json:"Qty"`
@@ -24,15 +19,6 @@ type Technician struct {
 	Phone        int    `json:"phone"`
 	TechnicianID string `json:"technician_id"`
 }
-
-// type Maintenance struct {
-// 	ID           string     `json:"_id"`
-// 	Equipment    Equipment1 `json:"equipment"`
-// 	Partlist     []Partlist `json:"partlist"`
-// 	ScheduleDate string     `json:"schedule_date"`
-// 	Status       string     `json:"status"`
-// 	Technician   Technician `json:"technician"`
-// }
 
 type SubmitTechnician struct {
 	ID    string `json:"technician_id"`

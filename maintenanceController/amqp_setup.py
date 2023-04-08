@@ -21,28 +21,6 @@ exchangename= "emma_topic"
 exchangetype= "topic" 
 channel.exchange_declare(exchange=exchangename, exchange_type=exchangetype, durable=True)
 
-
-
-############   Return Parts queue   #############
-queue_name = 'Return_Parts' 
-channel.queue_declare(queue=queue_name, durable=True) 
-
-routing_key = 'return.parts' 
-
-channel.queue_bind(exchange=exchangename, queue=queue_name, routing_key=routing_key) 
-
-
-
-############   Order Parts queue    #############
-queue_name = 'Order_Parts' 
-channel.queue_declare(queue=queue_name, durable=True)
-
-routing_key = 'order.parts' 
-
-channel.queue_bind(exchange=exchangename, queue=queue_name, routing_key=routing_key) 
-
-
-
 ############   Maintenance queue    #############
 queue_name = 'Maintenance_SMS' 
 channel.queue_declare(queue=queue_name, durable=True)

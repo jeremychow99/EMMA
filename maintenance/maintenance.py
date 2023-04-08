@@ -35,7 +35,8 @@ def json(doc):
             if key in doc:
                 doc[key] = datetime.strftime(doc[key], '%d-%m-%Y %H:%M:%S')
 
-    return doc        
+    return doc
+
 
 # type(maintenance_id) == ObjectId
 def find_maintenance(maintenance_id):
@@ -44,7 +45,6 @@ def find_maintenance(maintenance_id):
     maintenance_obj = json(maintenance_obj)
 
     return maintenance_obj
-
 
 
 ############# API Routes ##############
@@ -62,20 +62,19 @@ def query_all_maintenance():
 
     # If any document exist
     if len(maintenance_list):
-        return jsonify({
-            "code": 200,
-            "data": {
-                "maintenance": [maintenance for maintenance in maintenance_list]
-            }
-        }), 200
-    
-    return jsonify(
-        {
-            "code": 404,
-            "message": "No maintenance record."
-        }
-    ), 404
+        return (
+            jsonify(
+                {
+                    "code": 200,
+                    "data": {
+                        "maintenance": [maintenance for maintenance in maintenance_list]
+                    },
+                }
+            ),
+            200,
+        )
 
+    return jsonify({"code": 404, "message": "No maintenance record."}), 404
 
 
 # Retrieve single maintenance record by id
@@ -88,17 +87,9 @@ def query_maintenance(maintenance_id):
 
     # Maintenance Record found
     if maintenance_obj:
-        return jsonify({
-            "code": 200,
-            "data": maintenance_obj
-        }), 200
-    
-    return jsonify(
-        {
-            "code": 404,
-            "message": "No maintenance record found."
-        }
-    ), 404
+        return jsonify({"code": 200, "data": maintenance_obj}), 200
+
+    return jsonify({"code": 404, "message": "No maintenance record found."}), 404
 
 
 # Retrieve all maintenance record assigned to technician
@@ -114,17 +105,9 @@ def query_tech_maintenance(technician_id):
 
     # Maintenance Record found
     if len(maintenance_list):
-        return jsonify({
-            "code": 200,
-            "data": maintenance_list
-        }), 200
-    
-    return jsonify(
-        {
-            "code": 404,
-            "message": "No maintenance record found."
-        }
-    ), 404
+        return jsonify({"code": 200, "data": maintenance_list}), 200
+
+    return jsonify({"code": 404, "message": "No maintenance record found."}), 404
 
 
 @app.route("/maintenance/equipment/<string:equipment_id>")
@@ -139,17 +122,9 @@ def query_eqp_maintenance(equipment_id):
 
     # Maintenance Record found
     if len(maintenance_list):
-        return jsonify({
-            "code": 200,
-            "data": maintenance_list
-        }), 200
-    
-    return jsonify(
-        {
-            "code": 404,
-            "message": "No maintenance record found."
-        }
-    ), 404    
+        return jsonify({"code": 200, "data": maintenance_list}), 200
+
+    return jsonify({"code": 404, "message": "No maintenance record found."}), 404
 
 
 # Update single maintenance record
@@ -167,37 +142,39 @@ def update_maintenance(maintenance_id):
 
     try:
         # Update maintenance record
-        result = collection.update_one({"_id":maintenance_id}, {"$set": data})
+        result = collection.update_one({"_id": maintenance_id}, {"$set": data})
         print("Records Found: ", result.matched_count)
         print("Records Modified: ", result.modified_count)
-        
+
         # No matching document
         if result.matched_count == 0:
-            return jsonify({
-                "code": 404,
-                "data": {
-                    "maintenance_id": str(maintenance_id)
-                },
-                "message": "No maintenance record found."
-            }), 404
-            
+            return (
+                jsonify(
+                    {
+                        "code": 404,
+                        "data": {"maintenance_id": str(maintenance_id)},
+                        "message": "No maintenance record found.",
+                    }
+                ),
+                404,
+            )
+
     except:
-        return jsonify({
-            "code": 500,
-            "data": {
-                "maintenance_id": str(maintenance_id)
-            },
-            "message": "Error occurred when updating maintenance record."
-        }), 500 
-    
+        return (
+            jsonify(
+                {
+                    "code": 500,
+                    "data": {"maintenance_id": str(maintenance_id)},
+                    "message": "Error occurred when updating maintenance record.",
+                }
+            ),
+            500,
+        )
+
     # Successfully updated maintenance record
     maintenance_obj = find_maintenance(maintenance_id)
 
-    return jsonify({
-        "code": 201,
-        "data": maintenance_obj
-    }), 201
-
+    return jsonify({"code": 201, "data": maintenance_obj}), 201
 
 
 # Create maintenance record
@@ -209,75 +186,71 @@ def schedule_maintenance():
     sched_datetime = data["schedule_date"]
 
     # print(eqp_id)
-    
+
     # Add Status of maintenance to Scheduled
     data["status"] = "SCHEDULED"
 
     # Validate if there is a document with same equipment_id and schedule date
-    maintenance_obj = collection.find_one({
-        "equipment.equipment_id": eqp_id, 
-        "schedule_date": sched_datetime
-    })
+    maintenance_obj = collection.find_one(
+        {"equipment.equipment_id": eqp_id, "schedule_date": sched_datetime}
+    )
 
     # print(maintenance_obj)
 
     # Maintenance exists
     if maintenance_obj:
-        return jsonify({
-            "code": 400,
-            "data": json(maintenance_obj),
-            "message": "Maintenance record already exists."
-        }), 400
-    
+        return (
+            jsonify(
+                {
+                    "code": 400,
+                    "data": json(maintenance_obj),
+                    "message": "Maintenance record already exists.",
+                }
+            ),
+            400,
+        )
 
     try:
         # Add new maintenance record
         new_maintenance_id = collection.insert_one(data).inserted_id
 
     except:
-        return jsonify({
-            "code": 500,
-            "data": data,
-            "message": "Error occurred when creating maintenance record"
-        }), 500
-
+        return (
+            jsonify(
+                {
+                    "code": 500,
+                    "data": data,
+                    "message": "Error occurred when creating maintenance record",
+                }
+            ),
+            500,
+        )
 
     maintenance_obj = find_maintenance(new_maintenance_id)
-    return jsonify({
-        "code": 201,
-        "data": maintenance_obj
-    }), 201
-
+    return jsonify({"code": 201, "data": maintenance_obj}), 201
 
 
 @app.route("/maintenance/busy_technicians/<string:scheduled_date>")
 def queryBusyTechnicians(scheduled_date):
-    
+
     busy_list = []
 
     try:
-        maintenance_list = collection.find({
-                "schedule_date": scheduled_date
-            })
-        
+        maintenance_list = collection.find({"schedule_date": scheduled_date})
+
         for maintenance in maintenance_list:
             busy_list.append(maintenance['technician']['technician_id'])
 
     except:
-        return jsonify({
-            "code": 500,
-            "message": "Error occurred when curating technician list"
-        }), 500
-    
-    return jsonify({
-        "code": 200,
-        "data": busy_list
-    }), 200
+        return (
+            jsonify(
+                {"code": 500, "message": "Error occurred when curating technician list"}
+            ),
+            500,
+        )
 
-    
-
+    return jsonify({"code": 200, "data": busy_list}), 200
 
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)
-

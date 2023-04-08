@@ -82,7 +82,7 @@ func getTechnicians() []User {
 	if err != nil {
 		fmt.Println(err)
 	}
-	// for each technician, get name and append to slice
+
 	for _, u := range resp.Users {
 		if u.Role == "TECHNICIAN" {
 			technicians = append(technicians, u)
@@ -105,8 +105,6 @@ func autoSchedule(rw http.ResponseWriter, req *http.Request) {
 		log.Panicln(err)
 	}
 	eqpID := data.EquipmentID
-	// update equipment status
-	// make post request
 	e, err := getEqp(eqpID)
 	if err != nil {
 		rw.Header().Set("Content-Type", "application/json")
@@ -134,9 +132,6 @@ func autoSchedule(rw http.ResponseWriter, req *http.Request) {
 	fmt.Println(resp)
 
 	maintenances := getMaintenancesForEqp(eqpID)
-	fmt.Println("===============")
-	fmt.Println(maintenances)
-	fmt.Println("===============")
 	status := false
 	date := time.Now().AddDate(0, 0, 1)
 	// while status is false, for current date, check if any maintenance date is same
@@ -157,13 +152,9 @@ func autoSchedule(rw http.ResponseWriter, req *http.Request) {
 			rw.Write(resp)
 			return
 		}
-		// invoke api to check , if code = 404
 
 		availList := getTechnicians()
 		busyTechs := getBusyTechs(dateStr)
-		fmt.Println(len(availList))
-		fmt.Println(busyTechs)
-		// remove technician from available list
 		var s []User
 		for i := range availList {
 			fmt.Println("looping")
@@ -173,11 +164,9 @@ func autoSchedule(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		if len(s) > 0 {
-			// invoke maintenance controller to schedule maintenance
+			// invoke maintenance controller
 			testarr := []string{}
 			e := e.Convert()
-			fmt.Println("ID FOR EQP BELOW")
-			fmt.Println(e)
 			var st SubmitTechnician
 			st.ID, st.Name, st.Phone = s[0].ID, s[0].Name, s[0].Phone
 			details := map[string]interface{}{"equipment": e, "schedule_date": dateStr, "partlist": testarr, "technician": st}
