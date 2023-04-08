@@ -18,6 +18,8 @@ In recent years, many companies have opted to pursue digital transformation in o
 
 Equipment Maintenance Management Automation, or EMMA, seeks to streamline the process of managing and scheduling equipment maintanences by providing a platform to keep track of maintenance, equipment and inventory details. It can also integrate with IoT sensors to auto-schedule maintenance.
 
+### Accompanying frontend user interface for this project can be found [here](https://github.com/jeremychow99/EMMA-frontend).
+
 ## Technical Diagram
  <img src="images/diagram.png" alt="Diagram">
 
@@ -78,9 +80,9 @@ Kong Admin URL: http://kong:8001
 6. Click on DETAILS for the new snapshot created
 7. Select RESTORE, tick all boxes, then click IMPORT OBJECTS
 
-### Starting the application
+### Starting the web application
 
-1. From folder root, navigate to frontend and install dependencies
+1. On the [frontend](https://github.com/jeremychow99/EMMA-frontend), install dependencies
 
 ```bash
 cd frontend
